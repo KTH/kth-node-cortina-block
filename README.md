@@ -5,23 +5,23 @@ Fetch Cortina blocks and optionally cache using Redis.
 ## Installation
 
 ```bash
-npm install --save git+ssh://git@gita.sys.kth.se:Infosys/kth-cortina-block.git#v1.0.0
+npm install --save https://github.com/KTH/kth-node-cortina-block.git#v1.0.0
 ```
 
 ## Usage
 
 ```javascript
-const cortina = require('kth-cortina-block');
+const cortina = require('kth-node-cortina-block');
 const options = { /* see below for options */ };
 
-// somewhere else, usually in an express controller 
+// somewhere else, usually in an express controller
 
 cortina(options).then(function(blocks) {
 
   // blocks should be used in the layout/view
   // each block contains HTML,
   // meaning it should not be escaped in the view
-  
+
   // blocks is a plain object with the following properties:
   // title, image, footer, search, language, analytics
 
@@ -47,7 +47,7 @@ cortina(options).then(function(blocks) {
 - `url` is required. Should point to the Cortina block API endpoint.
 - `debug` is optional, defaults to `false`. Enables logging of Redis
   errors.
-- `version` is optional, defaults to `head`. Change if needed. 
+- `version` is optional, defaults to `head`. Change if needed.
 - `language` is optional, defaults to `en_UK`.
 - `redisKey` is optional, defaults to `CortinaBlock_`. Used as a prefix
   for the Redis cache. The `language` setting will be appended.
@@ -66,7 +66,7 @@ cortina(options).then(function(blocks) {
   - `language` optional object with language block IDs.
     - `en_UK` defaults to `1.77273`.
     - `sv_SE` defaults to `1.272446`._
-  - `analytics` defaults to `1.464751`. 
+  - `analytics` defaults to `1.464751`.
 
 ## Run tests
 
