@@ -62,7 +62,7 @@ function _getVersion (version) {
 }
 
 function _getBlock (config, type, multi) {
-  return request.get(_buildUrl(config, type, multi))
+  return request.get(_buildUrl(config, type, multi)).then(result => { return { blockName: type, result: result } })
 }
 
 function _buildRedisKey (prefix, lang) {
@@ -76,23 +76,44 @@ function _buildRedisKey (prefix, lang) {
  * @private
  */
 function _getAll (config) {
-  return Promise.all([
-    _getBlock(config, 'title'),
-    _getBlock(config, 'image'),
-    _getBlock(config, 'footer'),
-    _getBlock(config, 'search'),
-    _getBlock(config, 'language', true),
-    _getBlock(config, 'analytics')
-  ]).then(function (results) {
-    return {
-      title: results[0],
-      image: results[1],
-      footer: results[2],
-      search: results[3],
-      language: results[4],
-      analytics: results[5]
+  return Promise.all(
+    handleBlocks(config)
+  ).then(function (results) {
+      let result = {}
+      results.forEach(function (block) {
+        result[block.blockName] = block.result
+      })
+      return result
+    })
+}
+
+/**
+ * Handles all the blocks based on the given config.
+ * @param config
+ * @returns {Array}
+ */
+function handleBlocks (config) {
+  let blocks = []
+  let blocksObj = config.blocks
+  for (let i in blocksObj) {
+    if(blocksObj.hasOwnProperty(i)) {
+      if(isLanguage (blocksObj[i])) {
+        blocks.push(_getBlock(config, 'language', true))
+      } else {
+        blocks.push(_getBlock(config, i))
+      }
     }
-  })
+  }
+  return blocks
+}
+
+/**
+ * Check if it the given object is an object and if so, we asume that it is the language object.
+ * @param blockObj the given object.
+ * @returns {boolean} true if language object.
+ */
+function isLanguage(blockObj) {
+  return typeof blockObj === 'object'
 }
 
 /**

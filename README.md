@@ -56,9 +56,8 @@ cortina(options).then(function(blocks) {
 - `redis` is optional. Set to a Redis client instance when you want to
   enable Redis caching. Basically requires an object with `get` and
   `set` functions.
-- `blocks` is optional. It's a plain object containing Cortina IDs. The
-  following IDs can be specified (all are optional since they have
-  default values):
+- `blocks` is optional. It's a plain object containing Cortina block IDs. The
+  following IDs are default and can be overridden.
   - `title` defaults to `1.260060`.
   - `image` defaults to `1.77257`.
   - `footer` defaults to `1.202278`.
@@ -67,7 +66,15 @@ cortina(options).then(function(blocks) {
     - `en_UK` defaults to `1.77273`.
     - `sv_SE` defaults to `1.272446`._
   - `analytics` defaults to `1.464751`.
-
+  
+  You can also add application specific blocks to the options obejct like this:
+  
+  ```javascript
+  blocks: {
+    placesSearch: '1.672888'
+  }
+  ```
+  
 ## Run tests
 
 Clone this repository, run `npm install` followed by `npm test`.
