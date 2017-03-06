@@ -30,7 +30,8 @@ const prepareDefaults = {
   urls: {
     prod: '//www.kth.se',
     request: null,
-    app: ''
+    app: '',
+    siteUrl: null
   },
   siteName: null,
   localeText: null,
@@ -79,12 +80,12 @@ function _getAll (config) {
   return Promise.all(
     handleBlocks(config)
   ).then(function (results) {
-      let result = {}
-      results.forEach(function (block) {
-        result[block.blockName] = block.result
-      })
-      return result
+    let result = {}
+    results.forEach(function (block) {
+      result[block.blockName] = block.result
     })
+    return result
+  })
 }
 
 /**
@@ -96,8 +97,8 @@ function handleBlocks (config) {
   let blocks = []
   let blocksObj = config.blocks
   for (let i in blocksObj) {
-    if(blocksObj.hasOwnProperty(i)) {
-      if(isLanguage (blocksObj[i])) {
+    if (blocksObj.hasOwnProperty(i)) {
+      if (isLanguage(blocksObj[i])) {
         blocks.push(_getBlock(config, 'language', true))
       } else {
         blocks.push(_getBlock(config, i))
@@ -112,7 +113,7 @@ function handleBlocks (config) {
  * @param blockObj the given object.
  * @returns {boolean} true if language object.
  */
-function isLanguage(blockObj) {
+function isLanguage (blockObj) {
   return typeof blockObj === 'object'
 }
 
@@ -219,6 +220,7 @@ module.exports = function (config) {
  * @param {String} [config.urls.prod='//www.kth.se']
  * @param {String} config.urls.request - Current request URL (usually from req.url).
  * @param {String} config.urls.app - The application host name and prefix path.
+ * @param {String} config.urls.siteUrl - The url to overide app url in sitename if needed.
  * @param {Object} [config.selectors] - Optional plain object with CSS selectors.
  * @param {String} [config.selectors.logo='.imageWrapper img']
  * @param {String} [config.selectors.siteName='.siteName a']
@@ -242,7 +244,11 @@ module.exports.prepare = function (blocks, config) {
   $ = cheerio.load(blocks.title)
   $el = $(config.selectors.siteName)
   if ($el.length) {
-    $el.attr('href', config.urls.app)
+    if (config.urls.siteUrl) {
+      $el.attr('href', config.urls.siteUrl)
+    } else {
+      $el.attr('href', config.urls.app)
+    }
 
     if (config.siteName) {
       $el.text(config.siteName)

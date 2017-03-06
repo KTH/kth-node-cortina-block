@@ -118,6 +118,7 @@ function prepare(blocks, req, config) {
     - `request` is required. Usually the express `req.url` value.
     - `app` is optional, defaults to an empty string. Usually the
       host URL and the proxy prefix path.
+    - `siteUrl` is optional, overides default url on the site name only.
   - `selectors` is optional, defaults to a plain object with the
     following properties:
     - `logo` is optional, defaults to `.imageWrapper img`.
