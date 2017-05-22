@@ -3,6 +3,7 @@
 const request = require('request-promise')
 const cheerio = require('cheerio')
 const url = require('url')
+const log = require('kth-node-log')
 const _ = require('lodash/fp')
 
 const defaults = {
@@ -85,6 +86,14 @@ function _getAll (config) {
       result[block.blockName] = block.result
     })
     return result
+  })
+  .catch(err => {
+    var blockName = err.options ? err.options.uri : 'NO URI FOUND'
+    log.error(`WARNING! 
+      NO BLOCKS WILL BE LOADED DUE TO ERROR IN ONE OF THE BLOCKS. 
+      FIX ALL BROKEN BLOCKS IMMEDIATELY. 
+      ATTEMPTED TO LOAD BLOCK: ${blockName}`)
+    throw err
   })
 }
 
@@ -192,12 +201,12 @@ module.exports = function (config) {
       })
       .catch(function (err) {
         if (config.debug) {
-          console.error('Redis failed:', err.message, err.code)
+          log.error('Redis failed:', err.message, err.code)
         }
 
         if (err.code === 'ECONNREFUSED' || err.code === 'CONNECTION_BROKEN') {
           if (config.debug) {
-            console.log('Redis bad connection, getting from API...')
+            log.log('Redis bad connection, getting from API...')
           }
 
           return _getAll(config)

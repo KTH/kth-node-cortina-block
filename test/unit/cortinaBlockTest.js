@@ -2,6 +2,14 @@
 
 const test = require('tape')
 const proxyquire = require('proxyquire')
+const mockery = require('mockery')
+
+const mockLogger = {}
+mockLogger.debug = mockLogger.warn = mockLogger.error = mockLogger.init = mockLogger.info = () => {}
+mockery.registerMock('kth-node-log', mockLogger)
+mockery.enable({
+  warnOnUnregistered: false
+})
 
 const request = {}
 /**
