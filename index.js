@@ -23,7 +23,9 @@ const defaults = {
       'en_UK': '1.77273',
       'sv_SE': '1.272446'
     },
-    analytics: '1.464751'
+    analytics: '1.464751',
+    gtmAnalytics: '1.710828',
+    gtmNoscript: '1.710829'
   }
 }
 
