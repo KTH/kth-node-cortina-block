@@ -6,27 +6,62 @@ const url = require('url')
 const log = require('kth-node-log')
 const _ = require('lodash/fp')
 
-const defaults = {
-  url: null,
-  debug: false,
-  version: 'head',
-  language: 'en',
-  redisKey: 'CortinaBlock_',
-  redisExpire: 600,
-  redis: null,
-  blocks: {
-    title: '1.260060',
-    image: '1.77257',
-    footer: '1.202278',
-    search: '1.77262',
-    language: {
-      'en_UK': '1.77273',
-      'sv_SE': '1.272446'
-    },
-    analytics: '1.464751',
-    gtmAnalytics: '1.710828',
-    gtmNoscript: '1.710829'
+const defaults = _getEnvSpecificConfig()
+
+// This function makes a decision based on the HOST_URL environment variable
+// on whether we are in production or referens/development and serves the correct config
+// Most things are the same, but for instance the block ids differ.
+function _getEnvSpecificConfig () {
+  const prodDefaults = {
+    url: null,
+    debug: false,
+    version: 'head',
+    language: 'en',
+    redisKey: 'CortinaBlock_',
+    redisExpire: 600,
+    redis: null,
+    blocks: {
+      title: '1.260060',
+      image: '1.77257',
+      footer: '1.202278',
+      search: '1.77262',
+      language: {
+        'en_UK': '1.77273',
+        'sv_SE': '1.272446'
+      },
+      analytics: 1.464751,
+      gtmAnalytics: 1.714097,
+      gtmNoscript: 1.714099
+    }
   }
+  const refDefaults = {
+    url: null,
+    debug: false,
+    version: 'head',
+    language: 'en',
+    redisKey: 'CortinaBlock_',
+    redisExpire: 600,
+    redis: null,
+    blocks: {
+      title: '1.260060',
+      image: '1.77257',
+      footer: '1.202278',
+      search: '1.77262',
+      language: {
+        'en_UK': '1.77273',
+        'sv_SE': '1.272446'
+      },
+      analytics: '1.464751',
+      gtmAnalytics: '1.710828',
+      gtmNoscript: '1.710829'
+    }
+  }
+
+  const host = process.env['SERVER_HOST_URL']
+  if (host && host.startsWith('https://www.kth')) { // in production
+    return prodDefaults
+  }
+  return refDefaults
 }
 
 const prepareDefaults = {
