@@ -29,9 +29,9 @@ function _getEnvSpecificConfig () {
         'en_UK': '1.77273',
         'sv_SE': '1.272446'
       },
-      analytics: 1.464751,
-      gtmAnalytics: 1.714097,
-      gtmNoscript: 1.714099
+      analytics: '1.464751',
+      gtmAnalytics: '1.714097',
+      gtmNoscript: '1.714099'
     }
   }
   const refDefaults = {
