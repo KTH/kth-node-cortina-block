@@ -21,7 +21,7 @@
     "request-promise": "^3.0.0"
   },
   "peerDependencies": {
-    "kth-node-log": "^1.0.0"
+    "kth-node-log": "^2.0.0"
   },
   "devDependencies": {
     "mockery": "^2.0.0",
