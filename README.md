@@ -45,6 +45,7 @@ cortina(options).then(function(blocks) {
 ## Options
 
 - `url` is required. Should point to the Cortina block API endpoint.
+- `headers` is optional, pass headers used when fetching Cortina blocks.
 - `debug` is optional, defaults to `false`. Enables logging of Redis
   errors.
 - `version` is optional, defaults to `head`. Change if needed.
