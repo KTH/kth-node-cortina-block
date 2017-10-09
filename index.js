@@ -58,6 +58,17 @@ function _getEnvSpecificConfig () {
   }
 
   const host = process.env['SERVER_HOST_URL']
+  const cmhost = process.env['CM_HOST_URL']
+
+  // CM_HOST_URL is used when working with Azure
+  if (cmhost) {
+    if (cmhost.startsWith('https://www.kth')) {
+      return prodDefaults
+    } else {
+      return refDefaults
+    }
+  }
+
   if (host && host.startsWith('https://www.kth')) { // in production
     return prodDefaults
   }
