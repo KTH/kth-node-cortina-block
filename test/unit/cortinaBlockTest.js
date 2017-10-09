@@ -19,12 +19,12 @@ const request = {}
 const cortina = proxyquire('../../index', {'request-promise': request})
 
 function _assertBlocks (assert, blocks) {
-  assert.equal(blocks.title, '/title?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.image, '/image?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.footer, '/footer?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.search, '/search?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.language, '/swedish?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.analytics, '/analytics?v=1.0.0&l=sv_SE')
+  assert.equal(blocks.title.uri, '/title?v=1.0.0&l=sv_SE')
+  assert.equal(blocks.image.uri, '/image?v=1.0.0&l=sv_SE')
+  assert.equal(blocks.footer.uri, '/footer?v=1.0.0&l=sv_SE')
+  assert.equal(blocks.search.uri, '/search?v=1.0.0&l=sv_SE')
+  assert.equal(blocks.language.uri, '/swedish?v=1.0.0&l=sv_SE')
+  assert.equal(blocks.analytics.uri, '/analytics?v=1.0.0&l=sv_SE')
 }
 
 function createConfig () {
