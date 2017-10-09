@@ -119,7 +119,7 @@ function _getBlock (config, type, multi) {
   if (config.headers) {
     options['headers'] = config.headers
   }
-  
+
   return request.get(options).then(result => { return { blockName: type, result: result } })
 }
 
