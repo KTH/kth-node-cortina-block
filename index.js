@@ -112,7 +112,15 @@ function _getVersion (version) {
 }
 
 function _getBlock (config, type, multi) {
-  return request.get(_buildUrl(config, type, multi)).then(result => { return { blockName: type, result: result } })
+  const options = {
+    uri: _buildUrl(config, type, multi)
+  }
+
+  if (config.headers) {
+    options['headers'] = config.headers
+  }
+  
+  return request.get(options).then(result => { return { blockName: type, result: result } })
 }
 
 function _buildRedisKey (prefix, lang) {
