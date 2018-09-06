@@ -95,7 +95,7 @@ function _getEnvSpecificConfig () {
 
   if (host && host.startsWith('https://www.kth')) { // in production
     return prodDefaults
-  } else if (host && host.startsWith('https://www-r.referens.sys.kth') || host.startsWith('https://app-r.referens.sys.kth')) { // in reference
+  } else if (host && (host.startsWith('https://www-r.referens.sys.kth') || host.startsWith('https://app-r.referens.sys.kth'))) { // in reference
     return refDefaults
   } else {
     return devDefaults // in development
