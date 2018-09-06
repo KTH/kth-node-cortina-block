@@ -67,6 +67,8 @@ cortina(options).then(function(blocks) {
     - `en_UK` defaults to `1.77273`.
     - `sv_SE` defaults to `1.272446`._
   - `analytics` defaults to `1.464751`.
+  - `gtmAnalytics` defaults to `1.714097`.
+  - `gtmNoscript` defaults to `1.714099`.
   
   You can also add application specific blocks to the options obejct like this:
   

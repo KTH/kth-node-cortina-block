@@ -56,6 +56,28 @@ function _getEnvSpecificConfig () {
       gtmNoscript: '1.714099'
     }
   }
+  const devDefaults = {
+    url: null,
+    debug: false,
+    version: 'head',
+    language: 'en',
+    redisKey: 'CortinaBlock_',
+    redisExpire: 600,
+    redis: null,
+    blocks: {
+      title: '1.260060',
+      image: '1.77257',
+      footer: '1.202278',
+      search: '1.77262',
+      language: {
+        'en_UK': '1.77273',
+        'sv_SE': '1.272446'
+      },
+      analytics: '1.464751',
+      gtmAnalytics: '1.714097',
+      gtmNoscript: '1.714099'
+    }
+  }
 
   const host = process.env['SERVER_HOST_URL']
   const cmhost = process.env['CM_HOST_URL']
@@ -64,15 +86,20 @@ function _getEnvSpecificConfig () {
   if (cmhost) {
     if (cmhost.startsWith('https://www.kth')) {
       return prodDefaults
-    } else {
+    } else if (cmhost.startsWith('https://www-r.referens.sys.kth') || cmhost.startsWith('https://app-r.referens.sys.kth')) {
       return refDefaults
+    } else {
+      return devDefaults  // in development
     }
   }
 
   if (host && host.startsWith('https://www.kth')) { // in production
     return prodDefaults
+  } else if (host && host.startsWith('https://www-r.referens.sys.kth') || cmhost.startsWith('https://app-r.referens.sys.kth')) { // in reference
+    return refDefaults
+  } else {
+    return devDefaults // in development
   }
-  return refDefaults
 }
 
 const prepareDefaults = {
