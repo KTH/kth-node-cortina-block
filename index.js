@@ -113,7 +113,7 @@ const prepareDefaults = {
   localeText: null,
   selectors: {
     logo: '.imageWrapper img',
-    logoV3: '#header #primaryHeader #imageLogoBlock .mainLogo a img',
+    logoV3: '.mainLogo img',
     siteName: '.siteName a',
     localeLink: '.block.link a.localeLink'
   }
