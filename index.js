@@ -113,6 +113,7 @@ const prepareDefaults = {
   localeText: null,
   selectors: {
     logo: '.imageWrapper img',
+    logoV3: '#header #primaryHeader #imageLogoBlock .mainLogo a img',
     siteName: '.siteName a',
     localeLink: '.block.link a.localeLink'
   }
@@ -331,6 +332,12 @@ module.exports.prepare = function (blocks, config) {
   if ($el.length) {
     $el.attr('src', config.urls.prod + $el.attr('src'))
     blocks.image = $.html()
+  } else {
+    $el = $(config.selectors.logoV3)
+    if ($el.length) {
+      $el.attr('src', config.urls.prod + $el.attr('src'))
+      blocks.image = $.html()
+    }
   }
 
   $ = cheerio.load(blocks.title)
