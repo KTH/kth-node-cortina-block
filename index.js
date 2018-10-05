@@ -89,7 +89,7 @@ function _getEnvSpecificConfig () {
     } else if (cmhost.startsWith('https://www-r.referens.sys.kth') || cmhost.startsWith('https://app-r.referens.sys.kth')) {
       return refDefaults
     } else {
-      return devDefaults  // in development
+      return devDefaults // in development
     }
   }
 
@@ -171,14 +171,14 @@ function _getAll (config) {
     })
     return result
   })
-  .catch(err => {
-    var blockName = err.options ? err.options.uri : 'NO URI FOUND'
-    log.error(`WARNING! 
+    .catch(err => {
+      var blockName = err.options ? err.options.uri : 'NO URI FOUND'
+      log.error(`WARNING! 
       NO BLOCKS WILL BE LOADED DUE TO ERROR IN ONE OF THE BLOCKS. 
       FIX ALL BROKEN BLOCKS IMMEDIATELY. 
       ATTEMPTED TO LOAD BLOCK: ${blockName}`)
-    throw err
-  })
+      throw err
+    })
 }
 
 /**

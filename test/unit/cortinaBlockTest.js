@@ -12,11 +12,8 @@ mockery.enable({
 })
 
 const request = {}
-/**
- * @type {Function}
- * @returns {Promise}
- */
-const cortina = proxyquire('../../index', {'request-promise': request})
+
+const cortina = proxyquire('../../index', { 'request-promise': request })
 
 function _assertBlocks (assert, blocks) {
   assert.equal(blocks.title.uri, '/title?v=1.0.0&l=sv_SE')
@@ -68,12 +65,12 @@ test('yields errors', (assert) => {
   const config = createConfig()
 
   request.get = function () {
-    return Promise.reject('error')
+    return Promise.reject(new Error())
   }
 
   return cortina(config)
     .catch((err) => {
-      assert.equal(err, 'error')
+      assert.equal(typeof err, typeof new Error())
       assert.end()
     })
 })
