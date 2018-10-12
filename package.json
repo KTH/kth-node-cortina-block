@@ -24,7 +24,6 @@
   "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
-    "kth-node-log": "^3.0.2",
     "lodash": "^4.17.11",
     "request": "2.88.0",
     "request-promise": "^4.2.2"

@@ -5,7 +5,7 @@ Fetch Cortina blocks and optionally cache using Redis.
 ## Installation
 
 ```bash
-npm install --save https://github.com/KTH/kth-node-cortina-block.git#v1.0.0
+npm install kth-node-cortina-block
 ```
 
 ## Usage

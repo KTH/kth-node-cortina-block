@@ -8,11 +8,16 @@ const _ = require('lodash/fp')
 
 const defaults = _getEnvSpecificConfig()
 
-// This function makes a decision based on the HOST_URL environment variable
-// on whether we are in production or referens/development and serves the correct config
-// Most things are the same, but for instance the block ids differ.
+/**
+ * This function makes a decision based on the HOST_URL environment variable
+ * on whether we are in production, referens or development and serves the correct config.
+ *
+ * Most values are the same but could be different based on the current state in choosen Cortina environment.
+ * Eg. if we have imported a database dum from one environment in to the other.
+ */
 function _getEnvSpecificConfig () {
   const prodDefaults = {
+    env: 'prod',
     url: null,
     debug: false,
     version: 'head',
@@ -34,7 +39,9 @@ function _getEnvSpecificConfig () {
       gtmNoscript: '1.714099'
     }
   }
+
   const refDefaults = {
+    env: 'ref',
     url: null,
     debug: false,
     version: 'head',
@@ -56,7 +63,9 @@ function _getEnvSpecificConfig () {
       gtmNoscript: '1.714099'
     }
   }
+
   const devDefaults = {
+    env: 'dev',
     url: null,
     debug: false,
     version: 'head',
@@ -80,31 +89,57 @@ function _getEnvSpecificConfig () {
   }
 
   const host = process.env['SERVER_HOST_URL']
+  const hostEnv = _getHostEnv(host)
+
   const cmhost = process.env['CM_HOST_URL']
+  const cmHostEnv = _getHostEnv(cmhost)
 
   // CM_HOST_URL is used when working with Azure
-  if (cmhost) {
-    if (cmhost.startsWith('https://www.kth')) {
+  if (cmHostEnv) {
+    if (cmHostEnv === 'prod') {
       return prodDefaults
-    } else if (cmhost.startsWith('https://www-r.referens.sys.kth') || cmhost.startsWith('https://app-r.referens.sys.kth')) {
+    } else if (cmHostEnv === 'ref') {
       return refDefaults
     } else {
-      return devDefaults // in development
+      return devDefaults
     }
   }
 
-  if (host && host.startsWith('https://www.kth')) { // in production
+  if (hostEnv && hostEnv === 'prod') {
     return prodDefaults
-  } else if (host && (host.startsWith('https://www-r.referens.sys.kth') || host.startsWith('https://app-r.referens.sys.kth'))) { // in reference
+  } else if (hostEnv === 'ref') {
     return refDefaults
   } else {
-    return devDefaults // in development
+    return devDefaults
   }
 }
 
+/**
+ * Get the current environment from the given Host or Content Management Host.
+ * @param {*} host the given host URL.
+ */
+function _getHostEnv (hostUrl) {
+  if (hostUrl) {
+    if (hostUrl.startsWith('https://www.kth')) {
+      return 'prod'
+    } else if (hostUrl.startsWith('https://www-r.referens.sys.kth') || hostUrl.startsWith('https://app-r.referens.sys.kth')) {
+      return 'ref'
+    } else if (hostUrl.startsWith('https://www-r-new.referens.sys.kth') || hostUrl.startsWith('http://localhost')) {
+      return 'dev'
+    } else {
+      return 'prod'
+    }
+  }
+}
+
+/**
+ * Default configuration
+ */
 const prepareDefaults = {
   urls: {
-    prod: '//www.kth.se',
+    prod: 'https://www.kth.se',
+    ref: 'https://www-r.referens.sys.kth.se',
+    dev: 'https://www-r-new.referens.sys.kth.se',
     request: null,
     app: '',
     siteUrl: null
@@ -119,6 +154,12 @@ const prepareDefaults = {
   }
 }
 
+/**
+ * Build API url to Cortins from where to retrieve the blocks.
+ * @param {*} config the given config
+ * @param {*} type the block type eg. image
+ * @param {*} multi
+ */
 function _buildUrl (config, type, multi) {
   let url = config.url
   let language = _getLanguage(config.language)
@@ -127,18 +168,31 @@ function _buildUrl (config, type, multi) {
   return `${url}${block}?v=${version}&l=${language}`
 }
 
+/**
+ * Get language.
+ * @param {*} lang the given language parameter.
+ */
 function _getLanguage (lang) {
   if (lang === 'sv') {
     return 'sv_SE'
   }
-
   return 'en_UK'
 }
 
+/**
+ * Gets the block version, defaults to "head".
+ * @param {*} version the given block version.
+ */
 function _getVersion (version) {
   return version || 'head'
 }
 
+/**
+ * Gets the block based on the given config and type.
+ * @param {*} config the given config
+ * @param {*} type the block type eg. image
+ * @param {*} multi
+ */
 function _getBlock (config, type, multi) {
   const options = {
     uri: _buildUrl(config, type, multi)
@@ -147,17 +201,22 @@ function _getBlock (config, type, multi) {
   if (config.headers) {
     options['headers'] = config.headers
   }
-
   return request.get(options).then(result => { return { blockName: type, result: result } })
 }
 
+/**
+ * Build up the Redis key.
+ * @param {*} prefix the given prefix.
+ * @param {*} lang the given language.
+ * @private
+ */
 function _buildRedisKey (prefix, lang) {
   return prefix + _getLanguage(lang)
 }
 
 /**
  * Fetch all Cortina blocks from API.
- * @param config
+ * @param config the given cinfig
  * @returns {Promise}
  * @private
  */
@@ -304,7 +363,7 @@ module.exports = function (config) {
 }
 
 /**
- * Adjusts URLs to logo, locale link, and app link. Also sets app (site) name.
+ * Adjusts URLs to logo, locale link, and app link. Also sets app site name.
  * @param {Object} blocks - A blocks object.
  * @param {Object} config - Preparation configuration.
  * @param {String} [config.siteName] - Optional site name. Leave empty to use current value.
@@ -327,19 +386,26 @@ module.exports.prepare = function (blocks, config) {
   blocks = _.clone(blocks)
   config = _.defaultsDeep(prepareDefaults, config)
 
+  const currentEnv = _getEnvSpecificConfig().env
+
+  // Creating the logo block
   $ = cheerio.load(blocks.image)
   $el = $(config.selectors.logo)
+
+  let envUrl = _getEnvUrl(currentEnv, config)
+
   if ($el.length) {
-    $el.attr('src', config.urls.prod + $el.attr('src'))
+    $el.attr('src', envUrl + $el.attr('src'))
     blocks.image = $.html()
   } else {
     $el = $(config.selectors.logoV3)
     if ($el.length) {
-      $el.attr('src', config.urls.prod + $el.attr('src'))
+      $el.attr('src', envUrl + $el.attr('src'))
       blocks.image = $.html()
     }
   }
 
+  // Creating the site name block
   $ = cheerio.load(blocks.title)
   $el = $(config.selectors.siteName)
   if ($el.length) {
@@ -356,6 +422,7 @@ module.exports.prepare = function (blocks, config) {
     blocks.title = $.html()
   }
 
+  // Creating the locale link block
   $ = cheerio.load(blocks.language)
   $el = $(config.selectors.localeLink)
   if ($el.length) {
@@ -382,4 +449,21 @@ module.exports.prepare = function (blocks, config) {
   $el = null
 
   return blocks
+}
+
+/**
+ * Get the url for the current environmen.
+ * @param {*} currentEnv current environment.
+ * @param {*} config the given config.
+ */
+function _getEnvUrl (currentEnv, config) {
+  if (currentEnv && config) {
+    if (currentEnv === 'prod') {
+      return config.urls.prod
+    } else if (currentEnv === 'ref') {
+      return config.urls.ref
+    } else {
+      return config.urls.dev
+    }
+  }
 }
