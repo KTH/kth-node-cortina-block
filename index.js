@@ -154,7 +154,8 @@ const prepareDefaults = {
     logo: '.imageWrapper img',
     logoV3: '.mainLogo img',
     siteName: '.siteName a',
-    localeLink: '.block.link a.localeLink'
+    localeLink: '.block.link a.localeLink',
+    localeLinkV3: 'a.block.link[hreflang]'
   }
 }
 
@@ -429,6 +430,10 @@ module.exports.prepare = function (blocks, config) {
   // Creating the locale link block
   $ = cheerio.load(blocks.language)
   $el = $(config.selectors.localeLink)
+  if (!$el.length) {
+    $el = $(config.selectors.localeLinkV3) // Use the new html selector for KTH Style ver. 3.
+  }
+
   if ($el.length) {
     let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
     urlParts.search = null
