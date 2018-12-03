@@ -155,7 +155,8 @@ const prepareDefaults = {
     logoV3: '.mainLogo img',
     siteName: '.siteName a',
     localeLink: '.block.link a.localeLink',
-    localeLinkV3: 'a.block.link[hreflang]'
+    localeLinkV3: 'a.block.link[hreflang]',
+    secondaryMenuLocaleV3: '.block.links a[hreflang]'
   }
 }
 
@@ -452,6 +453,30 @@ module.exports.prepare = function (blocks, config) {
 
     $el.attr('href', url.format(urlParts))
     blocks.language = $.html()
+  }
+
+  // Creating the locale link block for secondaryMenu
+  $ = cheerio.load(blocks.secondaryMenu)
+  $el = $(config.selectors.secondaryMenuLocaleV3)
+
+  if ($el.length) {
+    let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
+    urlParts.search = null
+    urlParts.query = urlParts.query || {}
+
+    if ($el.attr('hreflang') === 'en-UK') {
+      $el.attr('href', $el.attr('href').replace('/en', '/'))
+      urlParts.query.l = 'en'
+    } else {
+      urlParts.query.l = 'sv'
+    }
+
+    if (config.localeText) {
+      $el.text(config.localeText)
+    }
+
+    $el.attr('href', url.format(urlParts))
+    blocks.secondaryMenu = $.html()
   }
 
   $ = null
