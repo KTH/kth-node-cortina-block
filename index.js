@@ -28,6 +28,7 @@ function _getEnvSpecificConfig () {
     blocks: {
       title: '1.260060',
       megaMenu: '1.260064',
+      secondaryMenu: '1.865038',
       image: '1.77257',
       footer: '1.202278',
       search: '1.77262',
@@ -52,7 +53,8 @@ function _getEnvSpecificConfig () {
     redis: null,
     blocks: {
       title: '1.260060',
-      megaMenu: '1.855134',
+      megaMenu: '1.260064',
+      secondaryMenu: '1.865038',
       image: '1.77257',
       footer: '1.202278',
       search: '1.77262',
@@ -78,7 +80,7 @@ function _getEnvSpecificConfig () {
     blocks: {
       title: '1.260060',
       megaMenu: '1.260064',
-      // secondaryMenu: '1.857457',
+      secondaryMenu: '1.865038',
       image: '1.77257',
       footer: '1.202278',
       search: '1.77262',
