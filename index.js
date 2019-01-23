@@ -130,7 +130,7 @@ function _getHostEnv (hostUrl) {
       return 'prod'
     } else if (hostUrl.startsWith('https://www-r.referens.sys.kth') || hostUrl.startsWith('https://app-r.referens.sys.kth')) {
       return 'ref'
-    } else if (hostUrl.startsWith('https://www-r-new.referens.sys.kth') || hostUrl.startsWith('http://localhost')) {
+    } else if (hostUrl.startsWith('http://localhost')) {
       return 'dev'
     } else {
       return 'prod'
@@ -145,7 +145,7 @@ const prepareDefaults = {
   urls: {
     prod: 'https://www.kth.se',
     ref: 'https://www-r.referens.sys.kth.se',
-    dev: 'https://www-r-new.referens.sys.kth.se',
+    dev: 'https://www-r.referens.sys.kth.se',
     request: null,
     app: '',
     siteUrl: null
