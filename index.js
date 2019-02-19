@@ -397,7 +397,11 @@ module.exports.prepare = function (blocks, config) {
   const currentEnv = _getEnvSpecificConfig().env
 
   // Creating the logo block
-  $ = cheerio.load(blocks.image)
+
+  $ = cheerio.load(blocks.image, {
+    xmlMode: true
+  })
+
   $el = $(config.selectors.logo)
 
   let envUrl = _getEnvUrl(currentEnv, config)
@@ -414,7 +418,9 @@ module.exports.prepare = function (blocks, config) {
   }
 
   // Creating the site name block
-  $ = cheerio.load(blocks.title)
+  $ = cheerio.load(blocks.title, {
+    xmlMode: true
+  })
   $el = $(config.selectors.siteName)
   if ($el.length) {
     if (config.urls.siteUrl) {
@@ -431,7 +437,9 @@ module.exports.prepare = function (blocks, config) {
   }
 
   // Creating the locale link block
-  $ = cheerio.load(blocks.language)
+  $ = cheerio.load(blocks.language, {
+    xmlMode: true
+  })
   $el = $(config.selectors.localeLink)
   if (!$el.length) {
     $el = $(config.selectors.localeLinkV3) // Use the new html selector for KTH Style ver. 3.
@@ -459,7 +467,9 @@ module.exports.prepare = function (blocks, config) {
 
   // Creating the locale link block for secondaryMenu
   if (blocks.secondaryMenu) {
-    $ = cheerio.load(blocks.secondaryMenu)
+    $ = cheerio.load(blocks.secondaryMenu, {
+      xmlMode: true
+    })
     $el = $(config.selectors.secondaryMenuLocaleV3)
 
     if ($el.length) {
