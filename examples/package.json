@@ -1,0 +1,16 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "Node example for this kth-node-cortina-block",
+  "main": "example.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "kth-node-cortina-block": "^3.0.5",
+    "kth-node-log": "^3.0.2"
+  }
+}

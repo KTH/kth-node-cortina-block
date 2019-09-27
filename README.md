@@ -1,4 +1,4 @@
-# kth-cortina-block
+# kth-cortina-block  [![Build Status](https://travis-ci.org/kth/kth-node-monitor.svg?branch=master)](https://travis-ci.org/kth/kth-cortina-block)
 
 Fetch Cortina blocks and optionally cache using Redis.
 
@@ -10,36 +10,38 @@ npm install kth-node-cortina-block
 
 ## Usage
 
+A basic NodeJS example is located under `/examples/`.
+
 ```javascript
-const cortina = require('kth-node-cortina-block');
-const options = { /* see below for options */ };
+const cortina = require("kth-node-cortina-block");
+const options = {
+  /* see below for options */
+};
 
 // somewhere else, usually in an express controller
 
-cortina(options).then(function(blocks) {
+cortina(options)
+  .then(function(blocks) {
+    // blocks should be used in the layout/view
+    // each block contains HTML,
+    // meaning it should not be escaped in the view
 
-  // blocks should be used in the layout/view
-  // each block contains HTML,
-  // meaning it should not be escaped in the view
+    // blocks is a plain object with the following properties:
+    // title, image, footer, search, language, analytics
 
-  // blocks is a plain object with the following properties:
-  // title, image, footer, search, language, analytics
+    res.render("page", { blocks: blocks });
+  })
+  .catch(function(err) {
+    log.error({ err: err }, "failed to get cortina blocks");
 
-  res.render('page', { blocks: blocks });
+    // either display the error:
 
-}).catch(function(err) {
+    res.render("error", { err: err });
 
-  log.error({ err: err }, 'failed to get cortina blocks');
+    // or render page without blocks:
 
-  // either display the error:
-
-  res.render('error', { err: err });
-
-  // or render page without blocks:
-
-  res.render('page', { blocks: {} });
-
-});
+    res.render("page", { blocks: {} });
+  });
 ```
 
 ## Options
@@ -59,25 +61,26 @@ cortina(options).then(function(blocks) {
   `set` functions.
 - `blocks` is optional. It's a plain object containing Cortina block IDs. The
   following IDs are default and can be overridden.
+
   - `title` defaults to `1.260060`.
   - `image` defaults to `1.77257`.
   - `footer` defaults to `1.202278`.
   - `search` defaults to `1.77262`.
   - `language` optional object with language block IDs.
     - `en_UK` defaults to `1.77273`.
-    - `sv_SE` defaults to `1.272446`._
+    - `sv_SE` defaults to `1.272446`.\_
   - `analytics` defaults to `1.464751`.
   - `gtmAnalytics` defaults to `1.714097`.
   - `gtmNoscript` defaults to `1.714099`.
-  
+
   You can also add application specific blocks to the options obejct like this:
-  
+
   ```javascript
   blocks: {
-    placesSearch: '1.672888'
+    placesSearch: "1.672888";
   }
   ```
-  
+
 ## Run tests
 
 Clone this repository, run `npm install` followed by `npm test`.
@@ -97,7 +100,7 @@ locale URL changes with the request URL.
 ### Usage
 
 ```javascript
-const cortina = require('kth-cortina-block');
+const cortina = require("kth-cortina-block");
 
 function prepare(blocks, req, config) {
   return cortina.prepare(blocks, {
@@ -127,3 +130,21 @@ function prepare(blocks, req, config) {
     - `logo` is optional, defaults to `.imageWrapper img`.
     - `siteName` is optional, defaults to `.siteName a`.
     - `localeLink` is optional, defaults to `.block.link a.localeLink`.
+
+
+### Returned blocks
+
+```json
+
+title: "\n\n\n  <h1 class=\"bloc…logy</a>\n  </h1>\n\n\n",
+megaMenu: "\n\n\n\n  <nav class=\"b…\n     </nav>\n\n  \n\n",
+secondaryMenu: "\n\n\n  <div class=\"blo…   </ul>\n  </div>\n\n\n",
+image: "\n\n\n  <figure class=\"…    \n  </figure>\n\n\n",
+footer: "\n\n\n  <div class=\"blo…  </div>\n  </div>\n\n\n",
+search: "\n\n\n  <div class=\"blo…aded=!0);</script>\n\n\n",
+language: "\n\n\n  <a class=\"block…KTH på svenska</a>\n\n\n",
+analytics: "\n\n\n  \n    <!-- conte…r\n};</script>\n  \n\n\n",
+gtmAnalytics: "\n\n\n  <!-- Begin JavaS…entId-1_714097 -->\n\n\n",
+gtmNoscript: "\n\n\n  <!-- Begin HTML …entId-1_714099 -->\n\n\n"
+```
+
