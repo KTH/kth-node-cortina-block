@@ -1,4 +1,4 @@
-# kth-cortina-block  [![Build Status](https://travis-ci.org/kth/kth-node-monitor.svg?branch=master)](https://travis-ci.org/kth/kth-cortina-block)
+# kth-node-cortina-block  [![Build Status](https://travis-ci.org/kth/kth-node-monitor.svg?branch=master)](https://travis-ci.org/kth/kth-node-cortina-block)
 
 Fetch Cortina blocks and optionally cache using Redis.
 
