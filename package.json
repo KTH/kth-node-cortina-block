@@ -8,7 +8,8 @@
     "codecheck": "standard",
     "standardfix": "standard --fix",
     "preversion": "npm run codecheck && npm run test",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "build": "./build.sh"
   },
   "repository": {
     "type": "git",
