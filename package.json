@@ -20,7 +20,11 @@
     "cortina",
     "blocks"
   ],
-  "auther": "KTH",
+  "author": {
+    "name": "KTH",
+    "email": "infosys@kth.se",
+    "url": "https://github.com/KTH"
+  },
   "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
