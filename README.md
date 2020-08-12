@@ -1,4 +1,4 @@
-# kth-node-cortina-block  [![Build Status](https://travis-ci.org/kth/kth-node-monitor.svg?branch=master)](https://travis-ci.org/kth/kth-node-cortina-block)
+# kth-node-cortina-block [![Build Status](https://travis-ci.org/kth/kth-node-monitor.svg?branch=master)](https://travis-ci.org/kth/kth-node-cortina-block)
 
 Fetch Cortina blocks and optionally cache using Redis.
 
@@ -13,15 +13,15 @@ npm install kth-node-cortina-block
 A basic NodeJS example is located under `/examples/`.
 
 ```javascript
-const cortina = require("kth-node-cortina-block");
+const cortina = require('kth-node-cortina-block')
 const options = {
   /* see below for options */
-};
+}
 
 // somewhere else, usually in an express controller
 
 cortina(options)
-  .then(function(blocks) {
+  .then(function (blocks) {
     // blocks should be used in the layout/view
     // each block contains HTML,
     // meaning it should not be escaped in the view
@@ -29,19 +29,19 @@ cortina(options)
     // blocks is a plain object with the following properties:
     // title, image, footer, search, language, analytics
 
-    res.render("page", { blocks: blocks });
+    res.render('page', { blocks: blocks })
   })
-  .catch(function(err) {
-    log.error({ err: err }, "failed to get cortina blocks");
+  .catch(function (err) {
+    log.error({ err: err }, 'failed to get cortina blocks')
 
     // either display the error:
 
-    res.render("error", { err: err });
+    res.render('error', { err: err })
 
     // or render page without blocks:
 
-    res.render("page", { blocks: {} });
-  });
+    res.render('page', { blocks: {} })
+  })
 ```
 
 ## Options
@@ -51,7 +51,7 @@ cortina(options)
 - `debug` is optional, defaults to `false`. Enables logging of Redis
   errors.
 - `version` is optional, defaults to `head`. Change if needed.
-- `language` is optional, defaults to `en_UK`.
+- `language` is optional, defaults to `en`.
 - `redisKey` is optional, defaults to `CortinaBlock_`. Used as a prefix
   for the Redis cache. The `language` setting will be appended.
 - `redisExpire` is optional, defaults to `600` (10 minutes). Sets
@@ -67,8 +67,8 @@ cortina(options)
   - `footer` defaults to `1.202278`.
   - `search` defaults to `1.77262`.
   - `language` optional object with language block IDs.
-    - `en_UK` defaults to `1.77273`.
-    - `sv_SE` defaults to `1.272446`.\_
+    - `en` defaults to `1.77273`.
+    - `sv` defaults to `1.272446`.\_
   - `analytics` defaults to `1.464751`.
   - `gtmAnalytics` defaults to `1.714097`.
   - `gtmNoscript` defaults to `1.714099`.
@@ -77,7 +77,7 @@ cortina(options)
 
   ```javascript
   blocks: {
-    placesSearch: "1.672888";
+    placesSearch: '1.672888'
   }
   ```
 
@@ -100,16 +100,16 @@ locale URL changes with the request URL.
 ### Usage
 
 ```javascript
-const cortina = require("kth-cortina-block");
+const cortina = require('kth-cortina-block')
 
 function prepare(blocks, req, config) {
   return cortina.prepare(blocks, {
     urls: {
       request: req.url,
-      app: config.full.hostUrl + config.full.proxyPrefixPath.uri
-    }
+      app: config.full.hostUrl + config.full.proxyPrefixPath.uri,
+    },
     // more options below
-  });
+  })
 }
 ```
 
@@ -131,7 +131,6 @@ function prepare(blocks, req, config) {
     - `siteName` is optional, defaults to `.siteName a`.
     - `localeLink` is optional, defaults to `.block.link a.localeLink`.
 
-
 ### Returned blocks
 
 ```json
@@ -147,4 +146,3 @@ analytics: "\n\n\n  \n    <!-- conte…r\n};</script>\n  \n\n\n",
 gtmAnalytics: "\n\n\n  <!-- Begin JavaS…entId-1_714097 -->\n\n\n",
 gtmNoscript: "\n\n\n  <!-- Begin HTML …entId-1_714099 -->\n\n\n"
 ```
-

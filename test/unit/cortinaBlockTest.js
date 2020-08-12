@@ -8,23 +8,23 @@ const mockLogger = {}
 mockLogger.debug = mockLogger.warn = mockLogger.error = mockLogger.init = mockLogger.info = () => {}
 mockery.registerMock('kth-node-log', mockLogger)
 mockery.enable({
-  warnOnUnregistered: false
+  warnOnUnregistered: false,
 })
 
 const request = {}
 
 const cortina = proxyquire('../../index', { 'request-promise': request })
 
-function _assertBlocks (assert, blocks) {
-  assert.equal(blocks.title.uri, '/title?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.image.uri, '/image?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.footer.uri, '/footer?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.search.uri, '/search?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.language.uri, '/swedish?v=1.0.0&l=sv_SE')
-  assert.equal(blocks.analytics.uri, '/analytics?v=1.0.0&l=sv_SE')
+function _assertBlocks(assert, blocks) {
+  assert.equal(blocks.title.uri, '/title?v=1.0.0&l=sv')
+  assert.equal(blocks.image.uri, '/image?v=1.0.0&l=sv')
+  assert.equal(blocks.footer.uri, '/footer?v=1.0.0&l=sv')
+  assert.equal(blocks.search.uri, '/search?v=1.0.0&l=sv')
+  assert.equal(blocks.language.uri, '/swedish?v=1.0.0&l=sv')
+  assert.equal(blocks.analytics.uri, '/analytics?v=1.0.0&l=sv')
 }
 
-function createConfig () {
+function createConfig() {
   return {
     url: '/',
     version: '1.0.0',
@@ -35,11 +35,11 @@ function createConfig () {
       footer: 'footer',
       search: 'search',
       language: {
-        en_UK: 'english',
-        sv_SE: 'swedish'
+        en: 'english',
+        sv: 'swedish',
       },
-      analytics: 'analytics'
-    }
+      analytics: 'analytics',
+    },
   }
 }
 
@@ -68,11 +68,10 @@ test('yields errors', (assert) => {
     return Promise.reject(new Error())
   }
 
-  return cortina(config)
-    .catch((err) => {
-      assert.equal(typeof err, typeof new Error())
-      assert.end()
-    })
+  return cortina(config).catch((err) => {
+    assert.equal(typeof err, typeof new Error())
+    assert.end()
+  })
 })
 
 test('uses redis cache', (assert) => {
@@ -100,18 +99,20 @@ test('uses redis cache', (assert) => {
 
     expireAsync: function (value) {
       return Promise.resolve(value)
-    }
+    },
   }
 
-  return cortina(config).then((blocks) => {
-    _assertBlocks(assert, blocks)
-    assert.equal(calledGet, true)
-    assert.equal(calledSet, true)
-    assert.end()
-  }).catch((err) => {
-    assert.error(err, 'Should not yield errors.')
-    assert.end()
-  })
+  return cortina(config)
+    .then((blocks) => {
+      _assertBlocks(assert, blocks)
+      assert.equal(calledGet, true)
+      assert.equal(calledSet, true)
+      assert.end()
+    })
+    .catch((err) => {
+      assert.error(err, 'Should not yield errors.')
+      assert.end()
+    })
 })
 
 test('falls back to api if redis fails', (assert) => {
@@ -128,7 +129,7 @@ test('falls back to api if redis fails', (assert) => {
       error.code = 'ECONNREFUSED'
       calledGet = true
       return Promise.reject(error)
-    }
+    },
   }
 
   return cortina(config)

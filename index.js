@@ -15,7 +15,7 @@ const defaults = _getEnvSpecificConfig()
  * Most values are the same but could be different based on the current state in choosen Cortina environment.
  * Eg. if we have imported a database dum from one environment in to the other.
  */
-function _getEnvSpecificConfig () {
+function _getEnvSpecificConfig() {
   const prodDefaults = {
     env: 'prod',
     url: null,
@@ -33,13 +33,13 @@ function _getEnvSpecificConfig () {
       footer: '1.202278',
       search: '1.77262',
       language: {
-        'en_UK': '1.77273',
-        'sv_SE': '1.272446'
+        en: '1.77273',
+        sv: '1.272446',
       },
       analytics: '1.464751',
       gtmAnalytics: '1.714097',
-      gtmNoscript: '1.714099'
-    }
+      gtmNoscript: '1.714099',
+    },
   }
 
   const refDefaults = {
@@ -59,13 +59,13 @@ function _getEnvSpecificConfig () {
       footer: '1.202278',
       search: '1.77262',
       language: {
-        'en_UK': '1.77273',
-        'sv_SE': '1.272446'
+        en: '1.77273',
+        sv: '1.272446',
       },
       analytics: '1.464751',
       gtmAnalytics: '1.714097',
-      gtmNoscript: '1.714099'
-    }
+      gtmNoscript: '1.714099',
+    },
   }
 
   const devDefaults = {
@@ -85,13 +85,13 @@ function _getEnvSpecificConfig () {
       footer: '1.202278',
       search: '1.77262',
       language: {
-        'en_UK': '1.77273',
-        'sv_SE': '1.272446'
+        en: '1.77273',
+        sv: '1.272446',
       },
       analytics: '1.464751',
       gtmAnalytics: '1.714097',
-      gtmNoscript: '1.714099'
-    }
+      gtmNoscript: '1.714099',
+    },
   }
 
   const host = process.env['SERVER_HOST_URL']
@@ -124,11 +124,14 @@ function _getEnvSpecificConfig () {
  * Get the current environment from the given Host or Content Management Host.
  * @param {*} host the given host URL.
  */
-function _getHostEnv (hostUrl) {
+function _getHostEnv(hostUrl) {
   if (hostUrl) {
     if (hostUrl.startsWith('https://www.kth')) {
       return 'prod'
-    } else if (hostUrl.startsWith('https://www-r.referens.sys.kth') || hostUrl.startsWith('https://app-r.referens.sys.kth')) {
+    } else if (
+      hostUrl.startsWith('https://www-r.referens.sys.kth') ||
+      hostUrl.startsWith('https://app-r.referens.sys.kth')
+    ) {
       return 'ref'
     } else if (hostUrl.startsWith('http://localhost')) {
       return 'dev'
@@ -148,7 +151,7 @@ const prepareDefaults = {
     dev: 'https://www-r.referens.sys.kth.se',
     request: null,
     app: '',
-    siteUrl: null
+    siteUrl: null,
   },
   siteName: null,
   localeText: null,
@@ -158,8 +161,8 @@ const prepareDefaults = {
     siteName: '.siteName a',
     localeLink: '.block.link a.localeLink',
     localeLinkV3: 'a.block.link[hreflang]',
-    secondaryMenuLocaleV3: '.block.links a[hreflang]'
-  }
+    secondaryMenuLocaleV3: '.block.links a[hreflang]',
+  },
 }
 
 /**
@@ -168,7 +171,7 @@ const prepareDefaults = {
  * @param {*} type the block type eg. image
  * @param {*} multi
  */
-function _buildUrl (config, type, multi) {
+function _buildUrl(config, type, multi) {
   let url = config.url
   let language = _getLanguage(config.language)
   let block = multi ? config.blocks[type][language] : config.blocks[type]
@@ -180,18 +183,18 @@ function _buildUrl (config, type, multi) {
  * Get language.
  * @param {*} lang the given language parameter.
  */
-function _getLanguage (lang) {
+function _getLanguage(lang) {
   if (lang === 'sv') {
-    return 'sv_SE'
+    return lang
   }
-  return 'en_UK'
+  return 'en'
 }
 
 /**
  * Gets the block version, defaults to "head".
  * @param {*} version the given block version.
  */
-function _getVersion (version) {
+function _getVersion(version) {
   return version || 'head'
 }
 
@@ -201,15 +204,17 @@ function _getVersion (version) {
  * @param {*} type the block type eg. image
  * @param {*} multi
  */
-function _getBlock (config, type, multi) {
+function _getBlock(config, type, multi) {
   const options = {
-    uri: _buildUrl(config, type, multi)
+    uri: _buildUrl(config, type, multi),
   }
 
   if (config.headers) {
     options['headers'] = config.headers
   }
-  return request.get(options).then(result => { return { blockName: type, result: result } })
+  return request.get(options).then((result) => {
+    return { blockName: type, result: result }
+  })
 }
 
 /**
@@ -218,7 +223,7 @@ function _getBlock (config, type, multi) {
  * @param {*} lang the given language.
  * @private
  */
-function _buildRedisKey (prefix, lang) {
+function _buildRedisKey(prefix, lang) {
   return prefix + _getLanguage(lang)
 }
 
@@ -228,17 +233,16 @@ function _buildRedisKey (prefix, lang) {
  * @returns {Promise}
  * @private
  */
-function _getAll (config) {
-  return Promise.all(
-    handleBlocks(config)
-  ).then(function (results) {
-    let result = {}
-    results.forEach(function (block) {
-      result[block.blockName] = block.result
+function _getAll(config) {
+  return Promise.all(handleBlocks(config))
+    .then(function (results) {
+      let result = {}
+      results.forEach(function (block) {
+        result[block.blockName] = block.result
+      })
+      return result
     })
-    return result
-  })
-    .catch(err => {
+    .catch((err) => {
       var blockName = err.options ? err.options.uri : 'NO URI FOUND'
       log.error(`WARNING! 
       NO BLOCKS WILL BE LOADED DUE TO ERROR IN ONE OF THE BLOCKS. 
@@ -253,7 +257,7 @@ function _getAll (config) {
  * @param config
  * @returns {Array}
  */
-function handleBlocks (config) {
+function handleBlocks(config) {
   let blocks = []
   let blocksObj = config.blocks
   for (let i in blocksObj) {
@@ -273,7 +277,7 @@ function handleBlocks (config) {
  * @param blockObj the given object.
  * @returns {boolean} true if language object.
  */
-function isLanguage (blockObj) {
+function isLanguage(blockObj) {
   return typeof blockObj === 'object'
 }
 
@@ -283,7 +287,7 @@ function isLanguage (blockObj) {
  * @returns {Promise}
  * @private
  */
-function _getRedisItem (config) {
+function _getRedisItem(config) {
   let key = _buildRedisKey(config.redisKey, config.language)
   return config.redis.hgetallAsync(key)
 }
@@ -295,9 +299,10 @@ function _getRedisItem (config) {
  * @returns {Promise}
  * @private
  */
-function _setRedisItem (config, blocks) {
+function _setRedisItem(config, blocks) {
   let key = _buildRedisKey(config.redisKey, config.language)
-  return config.redis.hmsetAsync(key, blocks)
+  return config.redis
+    .hmsetAsync(key, blocks)
     .then(function () {
       return config.redis.expireAsync(key, config.redisExpire)
     })
@@ -312,7 +317,7 @@ function _setRedisItem (config, blocks) {
  * @param {String} config.url - URL to the Cortina block API.
  * @param {Boolean} [config.debug=false] - Enable logging of Redis errors.
  * @param {String} [config.version=head] - Cortina API version.
- * @param {String} [config.language=en_UK] - Language for the current session.
+ * @param {String} [config.language=en] - Language for the current session.
  * @param {String} [config.redisKey=CortinaBlock_] - Key prefix to use when caching.
  * @param {Number} [config.redisExpire=600] - Expiration time in seconds, defaults to 10 minutes.
  * @param {Object} [config.redis] - Redis client instance.
@@ -322,8 +327,8 @@ function _setRedisItem (config, blocks) {
  * @param {String} [config.blocks.footer=1.202278]
  * @param {String} [config.blocks.search=1.77262]
  * @param {Object} [config.blocks.language] - Object with language block IDs.
- * @param {String} [config.blocks.language.en_UK=1.77273] - English language block.
- * @param {String} [config.blocks.language.sv_SE=1.272446] - Swedish language block.
+ * @param {String} [config.blocks.language.en=1.77273] - English language block.
+ * @param {String} [config.blocks.language.sv=1.272446] - Swedish language block.
  * @param {String} [config.blocks.analytics=1.464751]
  * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
  */
@@ -345,10 +350,9 @@ module.exports = function (config) {
           return blocks
         }
 
-        return _getAll(config)
-          .then(function (blocks) {
-            return _setRedisItem(config, blocks)
-          })
+        return _getAll(config).then(function (blocks) {
+          return _setRedisItem(config, blocks)
+        })
       })
       .catch(function (err) {
         if (config.debug) {
@@ -399,7 +403,7 @@ module.exports.prepare = function (blocks, config) {
   // Creating the logo block
 
   $ = cheerio.load(blocks.image, {
-    xmlMode: true
+    xmlMode: true,
   })
 
   $el = $(config.selectors.logo)
@@ -419,7 +423,7 @@ module.exports.prepare = function (blocks, config) {
 
   // Creating the site name block
   $ = cheerio.load(blocks.title, {
-    xmlMode: true
+    xmlMode: true,
   })
   $el = $(config.selectors.siteName)
   if ($el.length) {
@@ -438,7 +442,7 @@ module.exports.prepare = function (blocks, config) {
 
   // Creating the locale link block
   $ = cheerio.load(blocks.language, {
-    xmlMode: true
+    xmlMode: true,
   })
   $el = $(config.selectors.localeLink)
   if (!$el.length) {
@@ -450,7 +454,7 @@ module.exports.prepare = function (blocks, config) {
     urlParts.search = null
     urlParts.query = urlParts.query || {}
 
-    if ($el.attr('hreflang') === 'en-UK') {
+    if ($el.attr('hreflang').startsWith('en')) {
       $el.attr('href', $el.attr('href').replace('/en', '/'))
       urlParts.query.l = 'en'
     } else {
@@ -468,7 +472,7 @@ module.exports.prepare = function (blocks, config) {
   // Creating the locale link block for secondaryMenu
   if (blocks.secondaryMenu) {
     $ = cheerio.load(blocks.secondaryMenu, {
-      xmlMode: true
+      xmlMode: true,
     })
     $el = $(config.selectors.secondaryMenuLocaleV3)
 
@@ -477,7 +481,7 @@ module.exports.prepare = function (blocks, config) {
       urlParts.search = null
       urlParts.query = urlParts.query || {}
 
-      if ($el.attr('hreflang') === 'en-UK') {
+      if ($el.attr('hreflang').startsWith('en')) {
         $el.attr('href', $el.attr('href').replace('/en', '/'))
         urlParts.query.l = 'en'
       } else {
@@ -504,7 +508,7 @@ module.exports.prepare = function (blocks, config) {
  * @param {*} currentEnv current environment.
  * @param {*} config the given config.
  */
-function _getEnvUrl (currentEnv, config) {
+function _getEnvUrl(currentEnv, config) {
   if (currentEnv && config) {
     if (currentEnv === 'prod') {
       return config.urls.prod
