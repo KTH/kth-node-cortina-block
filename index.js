@@ -10,10 +10,10 @@ const defaults = _getEnvSpecificConfig()
 
 /**
  * This function makes a decision based on the HOST_URL environment variable
- * on whether we are in production, referens or development and serves the correct config.
+ * on whether we are in production or referens and serves the correct config.
  *
  * Most values are the same but could be different based on the current state in choosen Cortina environment.
- * Eg. if we have imported a database dum from one environment in to the other.
+ * Eg. if we have imported a database dump from one environment in to the other.
  */
 function _getEnvSpecificConfig() {
   const prodDefaults = {
@@ -68,32 +68,6 @@ function _getEnvSpecificConfig() {
     },
   }
 
-  const devDefaults = {
-    env: 'dev',
-    url: null,
-    debug: false,
-    version: 'head',
-    language: 'en',
-    redisKey: 'CortinaBlock_',
-    redisExpire: 600,
-    redis: null,
-    blocks: {
-      title: '1.260060',
-      megaMenu: '1.260064',
-      secondaryMenu: '1.865038',
-      image: '1.77257',
-      footer: '1.202278',
-      search: '1.77262',
-      language: {
-        en: '1.77273',
-        sv: '1.272446',
-      },
-      analytics: '1.464751',
-      gtmAnalytics: '1.714097',
-      gtmNoscript: '1.714099',
-    },
-  }
-
   const host = process.env['SERVER_HOST_URL']
   const hostEnv = _getHostEnv(host)
 
@@ -104,25 +78,22 @@ function _getEnvSpecificConfig() {
   if (cmHostEnv) {
     if (cmHostEnv === 'prod') {
       return prodDefaults
-    } else if (cmHostEnv === 'ref') {
-      return refDefaults
     } else {
-      return devDefaults
+      return refDefaults
     }
   }
 
   if (hostEnv && hostEnv === 'prod') {
     return prodDefaults
-  } else if (hostEnv === 'ref') {
-    return refDefaults
   } else {
-    return devDefaults
+    return refDefaults
   }
 }
 
 /**
  * Get the current environment from the given Host or Content Management Host.
- * @param {*} host the given host URL.
+ *
+ * @param host the given host URL.
  */
 function _getHostEnv(hostUrl) {
   if (hostUrl) {
@@ -134,7 +105,7 @@ function _getHostEnv(hostUrl) {
     ) {
       return 'ref'
     } else if (hostUrl.startsWith('http://localhost')) {
-      return 'dev'
+      return 'ref'
     } else {
       return 'prod'
     }
@@ -148,7 +119,6 @@ const prepareDefaults = {
   urls: {
     prod: 'https://www.kth.se',
     ref: 'https://www-r.referens.sys.kth.se',
-    dev: 'https://www-r.referens.sys.kth.se',
     request: null,
     app: '',
     siteUrl: null,
@@ -156,12 +126,10 @@ const prepareDefaults = {
   siteName: null,
   localeText: null,
   selectors: {
-    logo: '.imageWrapper img',
-    logoV3: '.mainLogo img',
+    logo: '.mainLogo img',
     siteName: '.siteName a',
-    localeLink: '.block.link a.localeLink',
-    localeLinkV3: 'a.block.link[hreflang]',
-    secondaryMenuLocaleV3: '.block.links a[hreflang]',
+    localeLink: 'a.block.link[hreflang]',
+    secondaryMenuLocale: '.block.links a[hreflang]',
   },
 }
 
@@ -386,9 +354,10 @@ module.exports = function (config) {
  * @param {String} config.urls.app - The application host name and prefix path.
  * @param {String} config.urls.siteUrl - The url to overide app url in sitename if needed.
  * @param {Object} [config.selectors] - Optional plain object with CSS selectors.
- * @param {String} [config.selectors.logo='.imageWrapper img']
- * @param {String} [config.selectors.siteName='.siteName a']
- * @param {String} [config.selectors.localeLink='.block.link a.localeLink']
+ * @param {String} [config.selectors.logo='.mainLogo img'] CSS selectors for the logo.
+ * @param {String} [config.selectors.siteName='.siteName a'] CSS selectors for the sitename.
+ * @param {String} [config.selectors.localeLink='a.block.link[hreflang]'] CSS selectors for the language link.
+ * @param {String} [config.selectors.secondaryMenuLocale='.block.links a[hreflang]'] CSS selectors for the secondary menu locale.
  * @returns {Object} Returns a modified blocks object.
  */
 module.exports.prepare = function (blocks, config) {
@@ -400,8 +369,9 @@ module.exports.prepare = function (blocks, config) {
 
   const currentEnv = _getEnvSpecificConfig().env
 
-  // Creating the logo block
-
+  /*
+   * Creating the logo block
+   */
   $ = cheerio.load(blocks.image, {
     xmlMode: true,
   })
@@ -413,15 +383,11 @@ module.exports.prepare = function (blocks, config) {
   if ($el.length) {
     $el.attr('src', envUrl + $el.attr('src'))
     blocks.image = $.html()
-  } else {
-    $el = $(config.selectors.logoV3)
-    if ($el.length) {
-      $el.attr('src', envUrl + $el.attr('src'))
-      blocks.image = $.html()
-    }
   }
 
-  // Creating the site name block
+  /*
+   * Creating the site name block
+   */
   $ = cheerio.load(blocks.title, {
     xmlMode: true,
   })
@@ -440,14 +406,14 @@ module.exports.prepare = function (blocks, config) {
     blocks.title = $.html()
   }
 
-  // Creating the locale link block
+  /*
+   * Creating the locale link block
+   */
   $ = cheerio.load(blocks.language, {
     xmlMode: true,
   })
+
   $el = $(config.selectors.localeLink)
-  if (!$el.length) {
-    $el = $(config.selectors.localeLinkV3) // Use the new html selector for KTH Style ver. 3.
-  }
 
   if ($el.length) {
     let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
@@ -474,7 +440,8 @@ module.exports.prepare = function (blocks, config) {
     $ = cheerio.load(blocks.secondaryMenu, {
       xmlMode: true,
     })
-    $el = $(config.selectors.secondaryMenuLocaleV3)
+
+    $el = $(config.selectors.secondaryMenuLocale)
 
     if ($el.length) {
       let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
@@ -505,6 +472,7 @@ module.exports.prepare = function (blocks, config) {
 
 /**
  * Get the url for the current environmen.
+ *
  * @param {*} currentEnv current environment.
  * @param {*} config the given config.
  */
