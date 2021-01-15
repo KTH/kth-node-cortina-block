@@ -447,10 +447,12 @@ module.exports.prepare = function (blocks, config) {
       let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
       urlParts.search = null
       urlParts.query = urlParts.query || {}
+      let langPathSegment = ''
 
       if ($el.attr('hreflang').startsWith('en')) {
         $el.attr('href', $el.attr('href').replace('/en', '/'))
         urlParts.query.l = 'en'
+        langPathSegment = '/en'
       } else {
         urlParts.query.l = 'sv'
       }
@@ -459,7 +461,12 @@ module.exports.prepare = function (blocks, config) {
         $el.text(config.localeText)
       }
 
-      $el.attr('href', url.format(urlParts))
+      // If true, the language link should point to KTH startpage
+      if (config.globalLink) {
+        $el.attr('href', envUrl + langPathSegment)
+      } else {
+        $el.attr('href', url.format(urlParts))
+      }
       blocks.secondaryMenu = $.html()
     }
   }
