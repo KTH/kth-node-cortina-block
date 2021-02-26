@@ -36,9 +36,6 @@ function _getEnvSpecificConfig() {
         en: '1.77273',
         sv: '1.272446',
       },
-      analytics: '1.464751',
-      gtmAnalytics: '1.714097',
-      gtmNoscript: '1.714099',
     },
   }
 
@@ -62,9 +59,6 @@ function _getEnvSpecificConfig() {
         en: '1.77273',
         sv: '1.272446',
       },
-      analytics: '1.464751',
-      gtmAnalytics: '1.714097',
-      gtmNoscript: '1.714099',
     },
   }
 
