@@ -1,11 +1,15 @@
 {
-  "name": "kth-node-cortina-block",
-  "version": "3.1.0",
+  "name": "@kth/kth-node-cortina-block",
+  "version": "4.0.0",
   "description": "Node.js module for fetching Cortina blocks and optionally cache using Redis.",
   "automaticPublish": "true",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/**/*Test.js | tap-spec",
+    "lint": "eslint \"{test}/**/*.{js}\" --quiet",
+    "lint-v": "eslint \"**/*.js\" ",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test-mocha": "tape test/**/*Test.js | tap-spec",
     "build": "./build.sh",
     "prepare": "bash -c 'if [ -f ./node_modules/.bin/husky ]; then husky install; fi'"
   },
@@ -27,23 +31,22 @@
   "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
-    "lodash": "^4.17.21",
-    "request": "2.88.2",
-    "request-promise": "^4.2.6"
+    "kth-node-log": "^3.1.10",
+    "node-fetch": "^2.6.6"
   },
   "peerDependencies": {
     "kth-node-log": "^3.1.10"
   },
   "devDependencies": {
     "@kth/eslint-config-kth": "^2.0.2",
+    "@types/jest": "^27.0.3",
     "eslint": "^7.32.0",
+    "eslint-plugin-jest-dom": "^3.9.2",
     "husky": "^7.0.4",
-    "mockery": "^2.1.0",
-    "prettier": "^2.4.1",
-    "pretty-quick": "^3.1.2",
-    "proxyquire": "^2.1.3",
-    "tap-spec": "^5.0.0",
-    "tape": "^5.3.2"
+    "jest": "^27.4.3",
+    "jest-extended": "^0.11.5",
+    "prettier": "^2.5.1",
+    "pretty-quick": "^3.1.2"
   },
   "prettier": {
     "arrowParens": "avoid",
@@ -51,5 +54,15 @@
     "semi": false,
     "singleQuote": true,
     "trailingComma": "es5"
+  },
+  "// (jest)": "configuration for jest",
+  "jest": {
+    "clearMocks": true,
+    "notifyMode": "failure-change",
+    "setupFilesAfterEnv": [
+      "jest-extended"
+    ],
+    "testEnvironment": "node",
+    "verbose": true
   }
 }

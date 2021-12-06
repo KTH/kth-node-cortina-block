@@ -1,13 +1,93 @@
 'use strict'
 
-const request = require('request-promise')
 const cheerio = require('cheerio')
 const url = require('url')
 const log = require('kth-node-log')
-const _ = require('lodash/fp')
+const fetch = require('node-fetch')
 
-const defaults = _getEnvSpecificConfig()
+// Creates a new copy of default config with config
+// Note deep copy is limited to only the second level
+//
+function generateConfig(defaultConfig, config) {
+  const rval = JSON.parse(JSON.stringify(defaultConfig))
+  for (const key in config) {
+    if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
+      if (key === 'redis') {
+        rval.redis = config.redis
+      } else if (typeof config[key] === 'object') {
+        rval[key] = { ...rval[key], ...config[key] }
+      } else {
+        rval[key] = config[key]
+      }
+    }
+  }
+  return rval
+}
 
+/**
+ * Get the current environment from the given Host or Content Management Host.
+ *
+ * @param host the given host URL.
+ */
+function _getHostEnv(hostUrl) {
+  if (hostUrl) {
+    if (hostUrl.startsWith('https://www.kth')) {
+      return 'prod'
+    }
+    if (hostUrl.startsWith('https://www-r.referens.sys.kth') || hostUrl.startsWith('https://app-r.referens.sys.kth')) {
+      return 'ref'
+    }
+    if (hostUrl.startsWith('http://localhost')) {
+      return 'ref'
+    }
+  }
+  return 'prod'
+}
+/**
+ * Get language.
+ * @param {*} lang the given language parameter.
+ */
+function _getLanguage(lang) {
+  if (lang === 'sv') {
+    return lang
+  }
+  return 'en'
+}
+
+/**
+ * Gets the block version, defaults to "head".
+ * @param {*} version the given block version.
+ */
+function _getVersion(version) {
+  return version || 'head'
+}
+
+/**
+ * Check if it the given object is an object and if so, we asume that it is the language object.
+ * @param blockObj the given object.
+ * @returns {boolean} true if language object.
+ */
+function isLanguage(blockObj) {
+  return typeof blockObj === 'object'
+}
+/**
+ * Get the url for the current environmen.
+ *
+ * @param {*} currentEnv current environment.
+ * @param {*} config the given config.
+ */
+function _getEnvUrl(currentEnv, config) {
+  if (currentEnv && config) {
+    if (currentEnv === 'prod') {
+      return config.urls.prod
+    }
+    if (currentEnv === 'ref') {
+      return config.urls.ref
+    }
+    return config.urls.dev
+  }
+  return config.urls.prod
+}
 /**
  * This function makes a decision based on the HOST_URL environment variable
  * on whether we are in production or referens and serves the correct config.
@@ -62,49 +142,27 @@ function _getEnvSpecificConfig() {
     },
   }
 
-  const host = process.env['SERVER_HOST_URL']
+  const host = process.env.SERVER_HOST_URL
   const hostEnv = _getHostEnv(host)
 
-  const cmhost = process.env['CM_HOST_URL']
+  const cmhost = process.env.CM_HOST_URL
   const cmHostEnv = _getHostEnv(cmhost)
 
   // CM_HOST_URL is used when working with Azure
   if (cmHostEnv) {
     if (cmHostEnv === 'prod') {
       return prodDefaults
-    } else {
-      return refDefaults
     }
+    return refDefaults
   }
 
   if (hostEnv && hostEnv === 'prod') {
     return prodDefaults
-  } else {
-    return refDefaults
   }
+  return refDefaults
 }
 
-/**
- * Get the current environment from the given Host or Content Management Host.
- *
- * @param host the given host URL.
- */
-function _getHostEnv(hostUrl) {
-  if (hostUrl) {
-    if (hostUrl.startsWith('https://www.kth')) {
-      return 'prod'
-    } else if (
-      hostUrl.startsWith('https://www-r.referens.sys.kth') ||
-      hostUrl.startsWith('https://app-r.referens.sys.kth')
-    ) {
-      return 'ref'
-    } else if (hostUrl.startsWith('http://localhost')) {
-      return 'ref'
-    } else {
-      return 'prod'
-    }
-  }
-}
+const defaults = _getEnvSpecificConfig()
 
 /**
  * Default configuration
@@ -134,53 +192,33 @@ const prepareDefaults = {
  * @param {*} multi
  */
 function _buildUrl(config, type, multi) {
-  let url = config.url
-  let language = _getLanguage(config.language)
-  let block = multi ? config.blocks[type][language] : config.blocks[type]
-  let version = _getVersion(config.version)
-  return `${url}${block}?v=${version}&l=${language}`
+  const language = _getLanguage(config.language)
+  const block = multi ? config.blocks[type][language] : config.blocks[type]
+  const version = _getVersion(config.version)
+  return `${config.url}${block}?v=${version}&l=${language}`
+}
+
+function fetchUrl(urlIn, config, blockName) {
+  const headers = config.headers ? config.headers : {}
+  return fetch(urlIn, { headers })
+    .then(async result => {
+      if (result.ok) {
+        const text = await result.text()
+        const rval = { blockName, result: text }
+        log.debug(`RETURN ${JSON.stringify(rval)}`)
+        return rval
+      }
+      log.error(`Failed to fetch cortina block at ${urlIn}: ${result.status}`)
+      return {}
+    })
+    .catch(err => {
+      log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
+    })
 }
 
 /**
- * Get language.
- * @param {*} lang the given language parameter.
- */
-function _getLanguage(lang) {
-  if (lang === 'sv') {
-    return lang
-  }
-  return 'en'
-}
-
-/**
- * Gets the block version, defaults to "head".
- * @param {*} version the given block version.
- */
-function _getVersion(version) {
-  return version || 'head'
-}
-
-/**
- * Gets the block based on the given config and type.
- * @param {*} config the given config
- * @param {*} type the block type eg. image
- * @param {*} multi
- */
-function _getBlock(config, type, multi) {
-  const options = {
-    uri: _buildUrl(config, type, multi),
-  }
-
-  if (config.headers) {
-    options['headers'] = config.headers
-  }
-  return request.get(options).then((result) => {
-    return { blockName: type, result: result }
-  })
-}
-
-/**
- * Build up the Redis key.
+ * Build up the Redis key
+ *
  * @param {*} prefix the given prefix.
  * @param {*} lang the given language.
  * @private
@@ -196,16 +234,31 @@ function _buildRedisKey(prefix, lang) {
  * @private
  */
 function _getAll(config) {
-  return Promise.all(handleBlocks(config))
-    .then(function (results) {
-      let result = {}
-      results.forEach(function (block) {
-        result[block.blockName] = block.result
+  const allblocks = []
+  const blocksObj = config.blocks
+  for (const i in blocksObj) {
+    if (Object.prototype.hasOwnProperty.call(blocksObj, i)) {
+      if (isLanguage(blocksObj[i])) {
+        allblocks.push({ blockName: 'language', url: _buildUrl(config, 'language', true) })
+      } else {
+        allblocks.push({ blockName: i, url: _buildUrl(config, i) })
+      }
+    }
+  }
+  log.debug(`ALL blocks ${JSON.stringify(allblocks)}`)
+  return Promise.all(allblocks.map(block => fetchUrl(block.url, config, block.blockName)))
+    .then(results => {
+      log.debug(`getAll: ${results} ${results.length}`)
+      const result = {}
+      results.forEach(block => {
+        if (block) {
+          result[block.blockName] = block.result
+        }
       })
       return result
     })
-    .catch((err) => {
-      var blockName = err.options ? err.options.uri : 'NO URI FOUND'
+    .catch(err => {
+      const blockName = err.options ? err.options.uri : 'NO URI FOUND'
       log.error(`WARNING! 
       NO BLOCKS WILL BE LOADED DUE TO ERROR IN ONE OF THE BLOCKS. 
       FIX ALL BROKEN BLOCKS IMMEDIATELY. 
@@ -215,42 +268,13 @@ function _getAll(config) {
 }
 
 /**
- * Handles all the blocks based on the given config.
- * @param config
- * @returns {Array}
- */
-function handleBlocks(config) {
-  let blocks = []
-  let blocksObj = config.blocks
-  for (let i in blocksObj) {
-    if (blocksObj.hasOwnProperty(i)) {
-      if (isLanguage(blocksObj[i])) {
-        blocks.push(_getBlock(config, 'language', true))
-      } else {
-        blocks.push(_getBlock(config, i))
-      }
-    }
-  }
-  return blocks
-}
-
-/**
- * Check if it the given object is an object and if so, we asume that it is the language object.
- * @param blockObj the given object.
- * @returns {boolean} true if language object.
- */
-function isLanguage(blockObj) {
-  return typeof blockObj === 'object'
-}
-
-/**
  * Wrap a Redis get call in a Promise.
  * @param config
  * @returns {Promise}
  * @private
  */
 function _getRedisItem(config) {
-  let key = _buildRedisKey(config.redisKey, config.language)
+  const key = _buildRedisKey(config.redisKey, config.language)
   return config.redis.hgetallAsync(key)
 }
 
@@ -262,15 +286,11 @@ function _getRedisItem(config) {
  * @private
  */
 function _setRedisItem(config, blocks) {
-  let key = _buildRedisKey(config.redisKey, config.language)
+  const key = _buildRedisKey(config.redisKey, config.language)
   return config.redis
     .hmsetAsync(key, blocks)
-    .then(function () {
-      return config.redis.expireAsync(key, config.redisExpire)
-    })
-    .then(function () {
-      return blocks
-    })
+    .then(() => config.redis.expireAsync(key, config.redisExpire))
+    .then(() => blocks)
 }
 
 /**
@@ -294,46 +314,43 @@ function _setRedisItem(config, blocks) {
  * @param {String} [config.blocks.analytics=1.464751]
  * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
  */
-module.exports = function (config) {
-  config = _.defaultsDeep(defaults, config)
+module.exports = function cortina(configIn) {
+  const config = generateConfig(defaults, configIn)
 
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
-
-  if (config.redis) {
-    // Try to get from Redis otherwise get from web service then cache result
-    // in Redis using config.redisKey. If Redis connection fails, call API
-    // directly and don't cache results.
-
-    return _getRedisItem(config)
-      .then(function (blocks) {
-        if (blocks) {
-          return blocks
-        }
-
-        return _getAll(config).then(function (blocks) {
-          return _setRedisItem(config, blocks)
-        })
-      })
-      .catch(function (err) {
-        if (config.debug) {
-          log.error('Redis failed:', err.message, err.code)
-        }
-
-        if (err.code === 'ECONNREFUSED' || err.code === 'CONNECTION_BROKEN') {
-          if (config.debug) {
-            log.log('Redis bad connection, getting from API...')
-          }
-
-          return _getAll(config)
-        }
-
-        throw err
-      })
-  } else {
+  if (!config.redis) {
     return _getAll(config)
   }
+
+  // Try to get from Redis otherwise get from web service then cache result
+  // in Redis using config.redisKey. If Redis connection fails, call API
+  // directly and don't cache results.
+
+  return _getRedisItem(config)
+    .then(blocks => {
+      if (blocks) {
+        return blocks
+      }
+
+      return _getAll(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
+    })
+    .catch(err => {
+      if (config.debug) {
+        log.error('Redis failed:', err.message, err.code)
+      }
+
+      if (err.code === 'ECONNREFUSED' || err.code === 'CONNECTION_BROKEN') {
+        if (config.debug) {
+          log.log('Redis bad connection, getting from API...')
+        }
+
+        return _getAll(config)
+      }
+
+      throw err
+    })
 }
 
 /**
@@ -354,12 +371,13 @@ module.exports = function (config) {
  * @param {String} [config.selectors.secondaryMenuLocale='.block.links a[hreflang]'] CSS selectors for the secondary menu locale.
  * @returns {Object} Returns a modified blocks object.
  */
-module.exports.prepare = function (blocks, config) {
+module.exports.prepare = function prepare(blocksIn, configIn) {
   let $
   let $el
 
-  blocks = _.clone(blocks)
-  config = _.defaultsDeep(prepareDefaults, config)
+  const blocks = JSON.parse(JSON.stringify(blocksIn))
+
+  const config = generateConfig(prepareDefaults, configIn)
 
   const currentEnv = _getEnvSpecificConfig().env
 
@@ -372,7 +390,7 @@ module.exports.prepare = function (blocks, config) {
 
   $el = $(config.selectors.logo)
 
-  let envUrl = _getEnvUrl(currentEnv, config)
+  const envUrl = _getEnvUrl(currentEnv, config)
 
   if ($el.length) {
     $el.attr('src', envUrl + $el.attr('src'))
@@ -410,7 +428,7 @@ module.exports.prepare = function (blocks, config) {
   $el = $(config.selectors.localeLink)
 
   if ($el.length) {
-    let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
+    const urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
     urlParts.search = null
     urlParts.query = urlParts.query || {}
 
@@ -438,7 +456,7 @@ module.exports.prepare = function (blocks, config) {
     $el = $(config.selectors.secondaryMenuLocale)
 
     if ($el.length) {
-      let urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
+      const urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
       urlParts.search = null
       urlParts.query = urlParts.query || {}
       let langPathSegment = ''
@@ -469,22 +487,4 @@ module.exports.prepare = function (blocks, config) {
   $el = null
 
   return blocks
-}
-
-/**
- * Get the url for the current environmen.
- *
- * @param {*} currentEnv current environment.
- * @param {*} config the given config.
- */
-function _getEnvUrl(currentEnv, config) {
-  if (currentEnv && config) {
-    if (currentEnv === 'prod') {
-      return config.urls.prod
-    } else if (currentEnv === 'ref') {
-      return config.urls.ref
-    } else {
-      return config.urls.dev
-    }
-  }
 }
