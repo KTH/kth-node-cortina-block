@@ -5,7 +5,7 @@ Fetch Cortina blocks and optionally cache using Redis.
 ## Installation
 
 ```bash
-npm install kth-node-cortina-block
+npm install @kth/kth-node-cortina-block
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install kth-node-cortina-block
 A basic NodeJS example is located under `/examples/`.
 
 ```javascript
-const cortina = require('kth-node-cortina-block')
+const cortina = require('@kth/kth-node-cortina-block')
 const options = {
   /* see below for options */
 }
@@ -21,7 +21,7 @@ const options = {
 // somewhere else, usually in an express controller
 
 cortina(options)
-  .then(function (blocks) {
+  .then(blocks =>  {
     // blocks should be used in the layout/view
     // each block contains HTML,
     // meaning it should not be escaped in the view
@@ -29,14 +29,14 @@ cortina(options)
     // blocks is a plain object with the following properties:
     // title, image, footer, search, language, analytics
 
-    res.render('page', { blocks: blocks })
+    res.render('page', { blocks })
   })
-  .catch(function (err) {
-    log.error({ err: err }, 'failed to get cortina blocks')
+  .catch(err = > {
+    log.error({ err }, 'failed to get cortina blocks')
 
     // either display the error:
 
-    res.render('error', { err: err })
+    res.render('error', { err })
 
     // or render page without blocks:
 

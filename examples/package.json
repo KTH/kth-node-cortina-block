@@ -9,8 +9,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@kth/kth-node-cortina-block": "file:..",
     "express": "^4.17.1",
-    "kth-node-cortina-block": "^3.0.5",
     "kth-node-log": "^3.0.2"
   }
 }
