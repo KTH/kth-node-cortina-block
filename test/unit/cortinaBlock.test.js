@@ -143,8 +143,8 @@ describe(`Cortina blocks tests`, () => {
     expect(result.secondaryMenu).toEqual(helloWorld)
     expect(result.title).toEqual(helloWorld)
 
-    expect(calledGet).toBeTrue()
-    expect(calledSet).toBeTrue()
+    expect(calledGet).toEqual(true)
+    expect(calledSet).toEqual(true)
   })
 
   test('falls back to api if redis fails', async () => {
@@ -164,7 +164,7 @@ describe(`Cortina blocks tests`, () => {
     }
     const result = await cortina(config)
 
-    expect(calledGet).toBeTrue()
+    expect(calledGet).toEqual(true)
     expect(result.footer).toEqual(helloWorld)
   })
 })
