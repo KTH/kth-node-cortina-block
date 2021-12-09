@@ -205,7 +205,6 @@ function fetchUrl(urlIn, config, blockName) {
       if (result.ok) {
         const text = await result.text()
         const rval = { blockName, result: text }
-        log.debug(`RETURN ${JSON.stringify(rval)}`)
         return rval
       }
       log.error(`Failed to fetch cortina block at ${urlIn}: ${result.status}`)
@@ -245,10 +244,9 @@ function _getAll(config) {
       }
     }
   }
-  log.debug(`ALL blocks ${JSON.stringify(allblocks)}`)
+
   return Promise.all(allblocks.map(block => fetchUrl(block.url, config, block.blockName)))
     .then(results => {
-      log.debug(`getAll: ${results} ${results.length}`)
       const result = {}
       results.forEach(block => {
         if (block) {
