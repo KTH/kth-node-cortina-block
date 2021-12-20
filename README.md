@@ -1,11 +1,11 @@
-# kth-node-cortina-block [![Build Status](https://travis-ci.org/kth/kth-node-monitor.svg?branch=master)](https://travis-ci.org/kth/kth-node-cortina-block)
+# @kth/cortina-block
 
 Fetch Cortina blocks and optionally cache using Redis.
 
 ## Installation
 
 ```bash
-npm install @kth/kth-node-cortina-block
+npm install @kth/cortina-block
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install @kth/kth-node-cortina-block
 A basic NodeJS example is located under `/examples/`.
 
 ```javascript
-const cortina = require('@kth/kth-node-cortina-block')
+const cortina = require('@kth/cortina-block')
 const options = {
   /* see below for options */
 }
@@ -100,7 +100,7 @@ locale URL changes with the request URL.
 ### Usage
 
 ```javascript
-const cortina = require('kth-cortina-block')
+const cortina = require('@kth/cortina-block')
 
 function prepare(blocks, req, config) {
   return cortina.prepare(blocks, {

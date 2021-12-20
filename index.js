@@ -2,7 +2,7 @@
 
 const cheerio = require('cheerio')
 const url = require('url')
-const log = require('kth-node-log')
+const log = require('@kth/log')
 const fetch = require('node-fetch')
 
 // Creates a new copy of default config with config

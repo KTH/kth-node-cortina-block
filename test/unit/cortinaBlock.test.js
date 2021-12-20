@@ -1,23 +1,8 @@
 const fetch = require('node-fetch')
+const log = require('@kth/log')
 const cortina = require('../../index')
 
-// jest.mock('kth-node-log', () => ({
-//   init: jest.fn().mockName('init'),
-//   // eslint-disable-next-line no-console
-//   debug: jest.fn(txt => console.log(`DEBUG: ${txt}`)).mockName('debug'),
-//   // eslint-disable-next-line no-console
-//   error: jest.fn(txt => console.log(`ERROR: ${txt}`)).mockName('error'),
-//   // eslint-disable-next-line no-console
-//   info: jest.fn(txt => console.log(`INFO: ${txt}`)).mockName('info'),
-// }))
-
-jest.mock('kth-node-log', () => ({
-  init: jest.fn().mockName('init'),
-  debug: jest.fn().mockName('debug'),
-  error: jest.fn().mockName('error'),
-  info: jest.fn().mockName('info'),
-}))
-
+log.init({ name: 'unit test', env: 'production' })
 const testConfig = {
   url: '/',
   version: '1.0.0',
@@ -49,20 +34,6 @@ function createConfig() {
     },
   }
 }
-
-// jest.mock('node-fetch', () => ({
-//   fetch: jest.fn(() => ({
-//     text: () => Promise.resolve('<div>Hello world!</div>'),
-//     json: () => Promise.resolve({ msg: 'Hello world!' }),
-//   })),
-// }))
-
-// const fetch = jest.fn(() =>
-//   Promise.resolve({
-//     text: () => Promise.resolve('<div>Hello world!</div>'),
-//     json: () => Promise.resolve({ msg: 'Hello world!' }),
-//   })
-// )
 
 jest.mock('node-fetch')
 

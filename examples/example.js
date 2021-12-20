@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const cortina = require('@kth/kth-node-cortina-block')
+const cortina = require('@kth/cortina-block')
 const express = require('express')
 
 const app = express()
