@@ -63,20 +63,20 @@ cortina(options)
   following IDs are default and can be overridden.
 
   - `title` defaults to `1.260060`.
+  - `megaMenu` defaults to `1.855134`.
+  - `secondaryMenu` defaults to `1.865038`.
   - `image` defaults to `1.77257`.
   - `footer` defaults to `1.202278`.
   - `search` defaults to `1.77262`.
   - `language` optional object with language block IDs.
     - `en` defaults to `1.77273`.
-    - `sv` defaults to `1.272446`.\_
-  - `analytics` defaults to `1.464751`.
-  - `gtmAnalytics` defaults to `1.714097`.
-  - `gtmNoscript` defaults to `1.714099`.
+    - `sv` defaults to `1.272446`.
+  - `klaroConfig` defaults to `1.1137647`.
 
   You can also add application specific blocks to the options obejct like this:
 
   ```javascript
-  blocks: {
+  addBlocks: {
     placesSearch: '1.672888'
   }
   ```
@@ -108,7 +108,10 @@ function prepare(blocks, req, config) {
       request: req.url,
       app: config.full.hostUrl + config.full.proxyPrefixPath.uri,
     },
-    // more options below
+    // more options below e.g.
+    // addBlocks: {
+    //  myBlock: '1.1234',
+    // },
   })
 }
 ```
