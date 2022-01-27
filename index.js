@@ -116,6 +116,7 @@ function _getEnvSpecificConfig() {
         en: '1.77273',
         sv: '1.272446',
       },
+      klaroConfig: '1.1137647',
     },
   }
 
@@ -139,6 +140,7 @@ function _getEnvSpecificConfig() {
         en: '1.77273',
         sv: '1.272446',
       },
+      klaroConfig: '1.1011116',
     },
   }
 
@@ -152,6 +154,11 @@ function _getEnvSpecificConfig() {
   if (cmHostEnv) {
     if (cmHostEnv === 'prod') {
       return prodDefaults
+    }
+    // Check if in DEV environment and use block for localhost.
+    if (host.startsWith('http://localhost')) {
+      refDefaults.klaroConfig = '1.1011389'
+      return refDefaults
     }
     return refDefaults
   }
