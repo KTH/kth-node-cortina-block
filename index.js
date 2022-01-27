@@ -148,6 +148,9 @@ function _getEnvSpecificConfig() {
   let cmhost = process.env.CM_HOST_URL
   const localhost = 'http://localhost'
 
+  log.debug('SERVER_HOST_URL: ', process.env.SERVER_HOST_URL)
+  log.debug('CM_HOST_URL: ', process.env.CM_HOST_URL)
+
   /*
    * process.env.SERVER_HOST_URL and process.env.CM_HOST_URL are not loaded when
    * running on localhost so we set them if they are not defined in development.
