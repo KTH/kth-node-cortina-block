@@ -144,10 +144,20 @@ function _getEnvSpecificConfig() {
     },
   }
 
-  const host = process.env.SERVER_HOST_URL
-  const hostEnv = _getHostEnv(host)
+  let host = process.env.SERVER_HOST_URL
+  let cmhost = process.env.CM_HOST_URL
+  const localhost = 'http://localhost'
 
-  const cmhost = process.env.CM_HOST_URL
+  /*
+   * process.env.SERVER_HOST_URL and process.env.CM_HOST_URL are not loaded when
+   * running on localhost so we set them if they are not defined in development.
+   */
+  if (!host && !cmhost && process.env.NODE_ENV === 'development') {
+    host = localhost
+    cmhost = 'https://www-r.referens.sys.kth.se/cm/'
+  }
+
+  const hostEnv = _getHostEnv(host)
   const cmHostEnv = _getHostEnv(cmhost)
 
   // CM_HOST_URL is used when working with Azure
@@ -156,7 +166,7 @@ function _getEnvSpecificConfig() {
       return prodDefaults
     }
     // Check if in DEV environment and use block for localhost.
-    if (host.startsWith('http://localhost')) {
+    if (host.startsWith(localhost)) {
       refDefaults.klaroConfig = '1.1011389'
       return refDefaults
     }
