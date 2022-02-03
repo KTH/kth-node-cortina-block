@@ -149,12 +149,12 @@ function _getEnvSpecificConfig() {
   const localhost = 'http://localhost'
 
   /*
-   * process.env.SERVER_HOST_URL and process.env.CM_HOST_URL are not loaded when
-   * running on localhost so we set them if they are not defined in development.
+   * When in development, default host is localhost and default cmhost is REF
+   * if not set in process.env.SERVER_HOST_URL resp process.env.CM_HOST_URL
    */
-  if (!host && !cmhost && process.env.NODE_ENV === 'development') {
-    host = localhost
-    cmhost = 'https://www-r.referens.sys.kth.se/cm/'
+  if (process.env.NODE_ENV === 'development') {
+    host = host || localhost
+    cmhost = cmhost || 'https://www-r.referens.sys.kth.se/cm/'
   }
 
   const hostEnv = _getHostEnv(host)
