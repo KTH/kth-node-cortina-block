@@ -72,6 +72,7 @@ cortina(options)
     - `en` defaults to `1.77273`.
     - `sv` defaults to `1.272446`.
   - `klaroConfig` defaults to `1.1137647`.
+  - `klaroConfig` defaults to `1.714097`.
 
   You can also add application specific blocks to the options obejct like this:
 
