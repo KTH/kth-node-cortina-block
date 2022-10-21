@@ -228,7 +228,7 @@ function fetchUrl(urlIn, config, blockName) {
         return rval
       }
       log.error(`Failed to fetch cortina block at ${urlIn}: ${result.status}`)
-      return {}
+      return { blockName, result: '' }
     })
     .catch(err => {
       log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
