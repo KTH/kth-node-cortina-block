@@ -10,5 +10,3 @@ node_modules
 # IDEs
 .idea
 .vscode
-
-package-lock.json
