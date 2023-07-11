@@ -142,7 +142,7 @@ function _getEnvSpecificConfig() {
         sv: '1.272446',
       },
       klaroConfig: '1.1011116',
-      matomoAnalytics: '1.1011823',
+      matomoAnalytics: '1.714097',
     },
   }
 
@@ -170,7 +170,7 @@ function _getEnvSpecificConfig() {
     // Check if in DEV environment and use block for localhost.
     if (host.startsWith(localhost)) {
       refDefaults.blocks.klaroConfig = '1.1011389'
-      refDefaults.blocks.matomoAnalytics = '1.1011823'
+      refDefaults.blocks.matomoAnalytics = '1.714097'
       return refDefaults
     }
     return refDefaults
