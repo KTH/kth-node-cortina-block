@@ -222,7 +222,7 @@ async function fetchBlock(urlIn, config, blockName) {
   try {
     const response = await fetch(urlIn, { headers })
     if (!response.ok) {
-      log.error(`Failed to fetch cortina block at ${urlIn}: ${result.status}`)
+      log.error(`Failed to fetch cortina block at ${urlIn}: ${response.status}`)
       return { blockName, result: '' }
     }
     const result = await response.text()
