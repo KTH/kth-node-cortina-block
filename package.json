@@ -1,6 +1,6 @@
 {
   "name": "@kth/cortina-block",
-  "version": "5.0.13",
+  "version": "5.1.0",
   "description": "Node.js module for fetching Cortina blocks and optionally cache using Redis.",
   "automaticPublish": "true",
   "main": "index.js",
@@ -36,8 +36,7 @@
   "license": "MIT",
   "dependencies": {
     "@kth/log": "^4.0.5",
-    "cheerio": "^1.0.0-rc.12",
-    "node-fetch": "^2.6.7"
+    "cheerio": "^1.0.0-rc.12"
   },
   "peerDependencies": {
     "@kth/log": "^4.0.5"

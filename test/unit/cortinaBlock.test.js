@@ -1,4 +1,3 @@
-const fetch = require('node-fetch')
 const log = require('@kth/log')
 const cortina = require('../../index')
 
@@ -35,22 +34,21 @@ function createConfig() {
   }
 }
 
-jest.mock('node-fetch')
-
-const { Response } = jest.requireActual('node-fetch')
+const helloWorld = '<div>Hello world!</div>'
 
 describe(`Cortina blocks tests`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        text: () => Promise.resolve(helloWorld),
+        ok: true,
+      })
+    )
   })
-
   afterAll(() => jest.resetAllMocks())
 
   test('gets all blocks', async () => {
-    const helloWorld = '<div>Hello world!</div>'
-
-    fetch.mockImplementation(() => Promise.resolve(new Response(helloWorld)))
-
     const result = await cortina(testConfig)
 
     expect(result.footer).toEqual(helloWorld)
@@ -65,7 +63,7 @@ describe(`Cortina blocks tests`, () => {
   })
 
   test('yields errors', async () => {
-    fetch.mockImplementation(() => Promise.reject(new Error('Internal server error')))
+    fetch.mockRejectedValue(new Error('Internal server error'))
 
     let result
     try {
@@ -82,9 +80,6 @@ describe(`Cortina blocks tests`, () => {
 
     let calledGet = false
     let calledSet = false
-    const helloWorld = '<div>Hello world!</div>'
-
-    fetch.mockImplementation(() => Promise.resolve(new Response(helloWorld)))
 
     config.redis = {
       hgetallAsync(key) {
@@ -122,8 +117,6 @@ describe(`Cortina blocks tests`, () => {
     const config = createConfig()
     let calledGet = false
     const helloWorld = '<div>Hello world!</div>'
-
-    fetch.mockImplementation(() => Promise.resolve(new Response(helloWorld)))
 
     config.redis = {
       hgetallAsync() {

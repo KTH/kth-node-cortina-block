@@ -3,7 +3,6 @@
 const cheerio = require('cheerio')
 const url = require('url')
 const log = require('@kth/log')
-const fetch = require('node-fetch')
 
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
@@ -218,21 +217,19 @@ function _buildUrl(config, type, multi) {
   return `${config.url}${block}?v=${version}&l=${language}`
 }
 
-function fetchUrl(urlIn, config, blockName) {
+async function fetchBlock(urlIn, config, blockName) {
   const headers = config.headers ? config.headers : {}
-  return fetch(urlIn, { headers })
-    .then(async result => {
-      if (result.ok) {
-        const text = await result.text()
-        const rval = { blockName, result: text }
-        return rval
-      }
+  try {
+    const response = await fetch(urlIn, { headers })
+    if (!response.ok) {
       log.error(`Failed to fetch cortina block at ${urlIn}: ${result.status}`)
       return { blockName, result: '' }
-    })
-    .catch(err => {
-      log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
-    })
+    }
+    const result = await response.text()
+    return { blockName, result }
+  } catch (err) {
+    log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
+  }
 }
 
 /**
@@ -265,7 +262,7 @@ function _getAll(config) {
     }
   }
 
-  return Promise.all(allblocks.map(block => fetchUrl(block.url, config, block.blockName)))
+  return Promise.all(allblocks.map(block => fetchBlock(block.url, config, block.blockName)))
     .then(results => {
       const result = {}
       results.forEach(block => {
