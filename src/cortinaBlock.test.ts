@@ -1,5 +1,7 @@
+// @ts-nocheck
+
 const log = require('@kth/log')
-const cortina = require('../../index')
+const cortina = require('./index')
 
 log.init({ name: 'unit test', env: 'production' })
 const testConfig = {

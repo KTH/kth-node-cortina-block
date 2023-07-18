@@ -1,26 +1,16 @@
-'use strict'
-
-const url = require('url')
-const cheerio = require('cheerio')
-const log = require('@kth/log')
+// @ts-nocheck
+import cheerio from 'cheerio'
+import url from 'url'
+import log from '@kth/log'
+import { CortinaBlockConfig, DefaultConfig } from './types'
 
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
 //
-function generateConfig(defaultConfig, config) {
-  const rval = JSON.parse(JSON.stringify(defaultConfig))
-  for (const key in config) {
-    if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
-      if (key === 'redis') {
-        rval.redis = config.redis
-      } else if (typeof config[key] === 'object') {
-        rval[key] = { ...rval[key], ...config[key] }
-      } else {
-        rval[key] = config[key]
-      }
-    }
-  }
-  return rval
+function generateConfig(defaultConfig: DefaultConfig, config: CortinaBlockConfig) {
+  const defaultConfigCopy = structuredClone(defaultConfig)
+  const configCopy = structuredClone(config)
+  return { ...defaultConfigCopy, ...configCopy }
 }
 
 /**
@@ -28,17 +18,13 @@ function generateConfig(defaultConfig, config) {
  *
  * @param host the given host URL.
  */
-function _getHostEnv(hostUrl) {
-  if (hostUrl) {
-    if (hostUrl.startsWith('https://www.kth')) {
-      return 'prod'
-    }
-    if (hostUrl.startsWith('https://www-r.referens.sys.kth') || hostUrl.startsWith('https://app-r.referens.sys.kth')) {
-      return 'ref'
-    }
-    if (hostUrl.startsWith('http://localhost')) {
-      return 'ref'
-    }
+function _getHostEnv(hostUrl: string) {
+  if (
+    hostUrl.startsWith('https://www-r.referens.sys.kth') ||
+    hostUrl.startsWith('https://app-r.referens.sys.kth') ||
+    hostUrl.startsWith('http://localhost')
+  ) {
+    return 'ref'
   }
   return 'prod'
 }
@@ -46,18 +32,15 @@ function _getHostEnv(hostUrl) {
  * Get language.
  * @param {*} lang the given language parameter.
  */
-function _getLanguage(lang) {
-  if (lang === 'sv') {
-    return lang
-  }
-  return 'en'
+function _getLanguage(lang: string) {
+  return lang === 'sv' ? 'sv' : 'en'
 }
 
 /**
  * Gets the block version, defaults to "head".
  * @param {*} version the given block version.
  */
-function _getVersion(version) {
+function _getVersion(version: string) {
   return version || 'head'
 }
 
@@ -66,7 +49,7 @@ function _getVersion(version) {
  * @param blockObj the given object.
  * @returns {boolean} true if language object.
  */
-function isLanguage(blockObj) {
+function isLanguage(blockObj: any) {
   return typeof blockObj === 'object'
 }
 /**
@@ -75,17 +58,8 @@ function isLanguage(blockObj) {
  * @param {*} currentEnv current environment.
  * @param {*} config the given config.
  */
-function _getEnvUrl(currentEnv, config) {
-  if (currentEnv && config) {
-    if (currentEnv === 'prod') {
-      return config.urls.prod
-    }
-    if (currentEnv === 'ref') {
-      return config.urls.ref
-    }
-    return config.urls.dev
-  }
-  return config.urls.prod
+function _getEnvUrl(currentEnv: string, config: any) {
+  return config.urls[currentEnv]
 }
 /**
  * This function makes a decision based on the HOST_URL environment variable
@@ -144,7 +118,10 @@ function _getEnvSpecificConfig() {
     host = host || localhost
     cmhost = cmhost || 'https://www-r.referens.sys.kth.se/cm/'
   }
-
+  // TODO: Remove these two lines
+  host = host || localhost
+  cmhost = cmhost || 'https://www-r.referens.sys.kth.se/cm/'
+  console.log(host)
   const hostEnv = _getHostEnv(host)
   const cmHostEnv = _getHostEnv(cmhost)
 
@@ -197,26 +174,25 @@ const prepareDefaults = {
  * @param {*} type the block type eg. image
  * @param {*} multi
  */
-function _buildUrl(config, type, multi) {
+function _buildUrl(config: CortinaBlockConfig, type: string, multi: boolean) {
   const language = _getLanguage(config.language)
   const block = multi ? config.blocks[type][language] : config.blocks[type]
   const version = _getVersion(config.version)
   return `${config.url}${block}?v=${version}&l=${language}`
 }
 
-async function fetchBlock(urlIn, config, blockName) {
-  const headers = config.headers ? config.headers : {}
+async function fetchBlock(url: string, config: CortinaBlockConfig, blockName: string) {
+  const headers = config.headers ?? {}
   try {
-    const response = await fetch(urlIn, { headers })
+    const response = await fetch(url, { headers })
     if (!response.ok) {
-      log.error(`Failed to fetch cortina block at ${urlIn}: ${response.status}`)
+      log.error(`Failed to fetch cortina block at ${url}: ${response.status}`)
       return { blockName, result: '' }
     }
     const result = await response.text()
     return { blockName, result }
   } catch (err) {
-    log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
-    return { blockName, result: '' }
+    log.error(`WARNING! FAILED TO FETCH ${blockName} ${err}`)
   }
 }
 
@@ -227,7 +203,7 @@ async function fetchBlock(urlIn, config, blockName) {
  * @param {*} lang the given language.
  * @private
  */
-function _buildRedisKey(prefix, lang) {
+function _buildRedisKey(prefix: string, lang: 'en' | 'sv') {
   return prefix + _getLanguage(lang)
 }
 
@@ -237,7 +213,7 @@ function _buildRedisKey(prefix, lang) {
  * @returns {Promise}
  * @private
  */
-function _getAll(config) {
+function _getAll(config: CortinaBlockConfig) {
   const allblocks = []
   const blocksObj = config.blocks
   for (const i in blocksObj) {
@@ -276,7 +252,7 @@ function _getAll(config) {
  * @returns {Promise}
  * @private
  */
-function _getRedisItem(config) {
+function _getRedisItem(config: CortinaBlockConfig) {
   const key = _buildRedisKey(config.redisKey, config.language)
   return config.redis.hgetallAsync(key)
 }
@@ -323,7 +299,7 @@ function areAllValuesEmptyString(obj) {
  */
 module.exports = function cortina(configIn) {
   const config = generateConfig(defaults, configIn)
-
+  console.log(config)
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
