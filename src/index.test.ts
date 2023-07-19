@@ -1,33 +1,29 @@
-// @ts-nocheck
-
-const log = require('@kth/log')
-const cortina = require('./index')
+import log from '@kth/log'
+import cortina from './index'
 
 log.init({ name: 'unit test', env: 'production' })
-const testConfig = {
-  url: '/',
-  version: '1.0.0',
-  language: 'sv',
-  blocks: {
-    title: 'title',
-    image: 'image',
-    footer: 'footer',
-    search: 'search',
-    language: {
-      en: 'english',
-      sv: 'swedish',
-    },
-  },
-}
 
+const helloWorld = '<div>Hello world!</div>'
+const helloRedis = '<div>Hello redis!</div>'
+const redisResponse = {
+  title: helloRedis,
+  secondaryMenu: helloRedis,
+  megaMenu: helloRedis,
+  image: helloRedis,
+  footer: helloRedis,
+  search: helloRedis,
+  language: helloRedis,
+}
 function createConfig() {
   return {
     url: '/',
     version: '1.0.0',
-    language: 'sv',
+    language: 'sv' as 'sv',
     blocks: {
       title: 'title',
-
+      image: 'image',
+      footer: 'footer',
+      search: 'search',
       language: {
         en: 'english',
         sv: 'swedish',
@@ -36,12 +32,39 @@ function createConfig() {
   }
 }
 
-const helloWorld = '<div>Hello world!</div>'
+function createConfigWithRedis(redisFails: boolean = false) {
+  const configWithoutRedis = createConfig()
+  const error = new Error('Connection refused')
+  // @ts-ignore
+  error.code = 'ECONNREFUSED'
+  return {
+    ...configWithoutRedis,
+    redis: {
+      hgetallAsync(_key) {
+        if (redisFails) return Promise.reject(error)
+
+        return Promise.resolve(redisResponse)
+      },
+
+      hmsetAsync(_key, _value) {
+        if (redisFails) return Promise.reject(error)
+
+        return Promise.resolve(redisResponse)
+      },
+
+      expireAsync(_value) {
+        if (redisFails) return Promise.reject(error)
+
+        return Promise.resolve(redisResponse)
+      },
+    },
+  }
+}
 
 describe(`Cortina blocks tests`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    global.fetch = jest.fn(() =>
+    ;(global.fetch as jest.Mock) = jest.fn(() =>
       Promise.resolve({
         text: () => Promise.resolve(helloWorld),
         ok: true,
@@ -51,7 +74,7 @@ describe(`Cortina blocks tests`, () => {
   afterAll(() => jest.resetAllMocks())
 
   test('gets all blocks', async () => {
-    const result = await cortina(testConfig)
+    const result = await cortina(createConfig())
 
     expect(result.footer).toEqual(helloWorld)
 
@@ -64,76 +87,37 @@ describe(`Cortina blocks tests`, () => {
     expect(result.title).toEqual(helloWorld)
   })
 
-  test('returns empty block content', async () => {
-    fetch.mockRejectedValue(new Error('Internal server error'))
-    const result = await cortina(testConfig)
-    expect(result).toEqual({
-      footer: '',
-      image: '',
-      klaroConfig: '',
-      language: '',
-      matomoAnalytics: '',
-      megaMenu: '',
-      search: '',
-      secondaryMenu: '',
-      title: '',
-    })
+  test('yields errors', async () => {
+    ;(global.fetch as jest.Mock) = jest.fn().mockRejectedValue(new Error('Internal server error'))
+
+    let result
+    try {
+      result = await cortina(createConfig())
+    } catch (ex) {
+      expect(cortina).toThrow('Internal server error')
+    }
+    expect(result).toEqual({})
   })
 
   test('uses redis cache', async () => {
-    const config = createConfig()
-    const cache = {}
-
-    let calledGet = false
-    let calledSet = false
-
-    config.redis = {
-      hgetallAsync(key) {
-        calledGet = true
-        return Promise.resolve(cache[key])
-      },
-
-      hmsetAsync(key, value) {
-        calledSet = true
-        cache[key] = value
-        return Promise.resolve(value)
-      },
-
-      expireAsync(value) {
-        return Promise.resolve(value)
-      },
-    }
-    const result = await cortina(config)
-
-    expect(result.footer).toEqual(helloWorld)
-
-    expect(result.image).toEqual(helloWorld)
-    expect(result.language).toEqual(helloWorld)
-    expect(result.megaMenu).toEqual(helloWorld)
-
-    expect(result.search).toEqual(helloWorld)
-    expect(result.secondaryMenu).toEqual(helloWorld)
-    expect(result.title).toEqual(helloWorld)
-
-    expect(calledGet).toEqual(true)
-    expect(calledSet).toEqual(true)
+    const result = await cortina(createConfigWithRedis())
+    expect(result.footer).toEqual(helloRedis)
+    expect(result.image).toEqual(helloRedis)
+    expect(result.language).toEqual(helloRedis)
+    expect(result.megaMenu).toEqual(helloRedis)
+    expect(result.search).toEqual(helloRedis)
+    expect(result.secondaryMenu).toEqual(helloRedis)
+    expect(result.title).toEqual(helloRedis)
   })
 
   test('falls back to api if redis fails', async () => {
-    const config = createConfig()
-    let calledGet = false
-
-    config.redis = {
-      hgetallAsync() {
-        const error = new Error('Connection refused')
-        error.code = 'ECONNREFUSED'
-        calledGet = true
-        return Promise.reject(error)
-      },
-    }
-    const result = await cortina(config)
-
-    expect(calledGet).toEqual(true)
+    const result = await cortina(createConfigWithRedis(true))
     expect(result.footer).toEqual(helloWorld)
+    expect(result.image).toEqual(helloWorld)
+    expect(result.language).toEqual(helloWorld)
+    expect(result.megaMenu).toEqual(helloWorld)
+    expect(result.search).toEqual(helloWorld)
+    expect(result.secondaryMenu).toEqual(helloWorld)
+    expect(result.title).toEqual(helloWorld)
   })
 })

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { CortinaBlockConfig, DefaultConfig } from './types'
 
 /**
@@ -27,18 +29,10 @@ export function _getLanguage(lang: string) {
  * Gets the block version, defaults to "head".
  * @param {*} version the given block version.
  */
-function _getVersion(version: string) {
+export function _getVersion(version: string) {
   return version || 'head'
 }
 
-/**
- * Check if it the given object is an object and if so, we asume that it is the language object.
- * @param blockObj the given object.
- * @returns {boolean} true if language object.
- */
-export function isLanguage(blockObj: any) {
-  return typeof blockObj === 'object'
-}
 /**
  * Get the url for the current environmen.
  *
@@ -81,7 +75,8 @@ export function _buildRedisKey(prefix: string, lang: 'en' | 'sv') {
  */
 export function _getRedisItem(config: CortinaBlockConfig) {
   const key = _buildRedisKey(config.redisKey, config.language)
-  return config.redis.hgetallAsync(key)
+  const hej = config.redis.hgetallAsync(key)
+  return hej
 }
 
 /**

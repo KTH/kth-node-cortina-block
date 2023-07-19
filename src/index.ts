@@ -2,12 +2,11 @@
 import cheerio from 'cheerio'
 import url from 'url'
 import log from '@kth/log'
-import { CortinaBlockConfig, DefaultConfig } from './types'
+import { CortinaBlockConfig, ConfigIn } from './types'
 import {
   _getHostEnv,
   _getLanguage,
   _getVersion,
-  isLanguage,
   _getEnvUrl,
   _buildUrl,
   _buildRedisKey,
@@ -119,29 +118,7 @@ function _getEnvSpecificConfig() {
 
 const defaults = _getEnvSpecificConfig()
 
-/**
- * Default configuration
- */
-const prepareDefaults = {
-  urls: {
-    prod: 'https://www.kth.se',
-    ref: 'https://www-r.referens.sys.kth.se',
-    request: null,
-    app: '',
-    siteUrl: null,
-  },
-  siteName: null,
-  localeText: null,
-  selectors: {
-    logo: '.mainLogo img',
-    siteName: '.siteName a',
-    localeLink: 'a.block.link[hreflang]',
-    secondaryMenuLocale: '.block.links a[hreflang]',
-  },
-}
-
-async function fetchBlock(url: string, config: CortinaBlockConfig, blockName: string) {
-  const headers = config.headers ?? {}
+async function fetchBlock(url: string, headers: Headers, blockName: string) {
   try {
     const response = await fetch(url, { headers })
     if (!response.ok) {
@@ -161,22 +138,15 @@ async function fetchBlock(url: string, config: CortinaBlockConfig, blockName: st
  * @returns {Promise}
  * @private
  */
-function _getAll(config: CortinaBlockConfig) {
-  const allblocks = []
-  const blocksObj = config.blocks
-  for (const i in blocksObj) {
-    if (Object.prototype.hasOwnProperty.call(blocksObj, i)) {
-      if (isLanguage(blocksObj[i])) {
-        allblocks.push({ blockName: 'language', url: _buildUrl(config, 'language', true) })
-      } else {
-        allblocks.push({ blockName: i, url: _buildUrl(config, i) })
-      }
-    }
+function fetchAllBlocks(config: CortinaBlockConfig) {
+  const allblocks: { blockName: string; url: string }[] = []
+  for (const blockName in config.blocks) {
+    const isMulti = blockName === 'language'
+    allblocks.push({ blockName, url: _buildUrl(config, blockName, isMulti) })
   }
-
-  return Promise.all(allblocks.map(block => fetchBlock(block.url, config, block.blockName)))
+  return Promise.all(allblocks.map(block => fetchBlock(block.url, config.headers, block.blockName)))
     .then(results => {
-      const result = {}
+      const result: { [blockName: string]: string } = {}
       results.forEach(block => {
         if (block) {
           result[block.blockName] = block.result
@@ -215,13 +185,13 @@ function _getAll(config: CortinaBlockConfig) {
  * @param {String} [config.blocks.analytics=1.464751]
  * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
  */
-export default function cortina(configIn) {
+export default function cortina(configIn: ConfigIn) {
   const config = generateConfig(defaults, configIn)
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
   if (!config.redis) {
-    return _getAll(config)
+    return fetchAllBlocks(config)
   }
 
   // Try to get from Redis otherwise get from web service then cache result
@@ -234,22 +204,19 @@ export default function cortina(configIn) {
         return blocks
       }
 
-      return _getAll(config).then(cortinaBlocks => {
-        if (!areAllValuesEmptyString(cortinaBlocks)) return _setRedisItem(config, cortinaBlocks)
-        else return cortinaBlocks
-      })
+      return fetchAllBlocks(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
     })
     .catch(err => {
       if (config.debug) {
         log.error('Redis failed:', err.message, err.code)
       }
-
+      const hej = err.code
       if (err.code === 'ECONNREFUSED' || err.code === 'CONNECTION_BROKEN') {
         if (config.debug) {
           log.log('Redis bad connection, getting from API...')
         }
 
-        return _getAll(config)
+        return fetchAllBlocks(config)
       }
 
       throw err
