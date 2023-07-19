@@ -19,7 +19,7 @@ function createConfig(): Config {
   return {
     url: '/',
     env: 'ref',
-    debug: true,
+    debug: false,
     redisKey: 'cortina',
     redisExpire: 1000,
     version: '1.0.0',
