@@ -62,16 +62,20 @@ describe(`Cortina blocks tests`, () => {
     expect(result.title).toEqual(helloWorld)
   })
 
-  test('yields errors', async () => {
+  test('returns empty block content', async () => {
     fetch.mockRejectedValue(new Error('Internal server error'))
-
-    let result
-    try {
-      result = await cortina(testConfig)
-    } catch (ex) {
-      expect(cortina).toThrow('Internal server error')
-    }
-    expect(result).toEqual({})
+    const result = await cortina(testConfig)
+    expect(result).toEqual({
+      footer: '',
+      image: '',
+      klaroConfig: '',
+      language: '',
+      matomoAnalytics: '',
+      megaMenu: '',
+      search: '',
+      secondaryMenu: '',
+      title: '',
+    })
   })
 
   test('uses redis cache', async () => {
@@ -116,7 +120,6 @@ describe(`Cortina blocks tests`, () => {
   test('falls back to api if redis fails', async () => {
     const config = createConfig()
     let calledGet = false
-    const helloWorld = '<div>Hello world!</div>'
 
     config.redis = {
       hgetallAsync() {

@@ -1,7 +1,7 @@
 'use strict'
 
-const cheerio = require('cheerio')
 const url = require('url')
+const cheerio = require('cheerio')
 const log = require('@kth/log')
 
 // Creates a new copy of default config with config
@@ -229,6 +229,7 @@ async function fetchBlock(urlIn, config, blockName) {
     return { blockName, result }
   } catch (err) {
     log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
+    return { blockName, result: '' }
   }
 }
 
