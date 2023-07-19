@@ -1,6 +1,6 @@
 import log from '@kth/log'
 import cortina from './index'
-import { SupportedLang } from './types'
+import { Config } from './types'
 
 log.init({ name: 'unit test', env: 'production' })
 
@@ -15,11 +15,15 @@ const redisResponse = {
   search: helloRedis,
   language: helloRedis,
 }
-function createConfig() {
+function createConfig(): Config {
   return {
     url: '/',
+    env: 'ref',
+    debug: true,
+    redisKey: 'cortina',
+    redisExpire: 1000,
     version: '1.0.0',
-    language: 'sv' as SupportedLang,
+    language: 'sv',
     blocks: {
       title: 'title',
       image: 'image',
