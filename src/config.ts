@@ -1,19 +1,16 @@
-import { Config, Environment, SupportedLang } from './types'
+import { Config, Environment, SupportedLang, PrepareConfig } from './types'
 import { _getHostEnv } from './utils'
 
 /**
  * Default configuration
  */
-export const prepareDefaults = {
+export const prepareDefaults: PrepareConfig = {
   urls: {
     prod: 'https://www.kth.se',
     ref: 'https://www-r.referens.sys.kth.se',
-    request: null,
+    request: '',
     app: '',
-    siteUrl: null,
   },
-  siteName: null,
-  localeText: null,
   selectors: {
     logo: '.mainLogo img',
     siteName: '.siteName a',
@@ -41,6 +38,22 @@ export function generateConfig(defaultConfig: Config, config: Config) {
   return rval
 }
 
+export function generatePrepareConfig(prepareConfig: PrepareConfig, config: Config) {
+  const rval = structuredClone(prepareConfig)
+  for (const key in config) {
+    if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
+      if (key === 'redis') {
+        rval[key] = config.redis
+      } else if (typeof config[key] === 'object') {
+        rval[key] = { ...rval[key], ...config[key] }
+      } else {
+        rval[key] = config[key]
+      }
+    }
+  }
+  return rval
+}
+
 /**
  * This function makes a decision based on the HOST_URL environment variable
  * on whether we are in production or referens and serves the correct config.
@@ -51,7 +64,7 @@ export function generateConfig(defaultConfig: Config, config: Config) {
 export function _getEnvSpecificConfig() {
   const prodDefaults: Config = {
     env: 'prod' as Environment,
-    url: 'null',
+    url: '',
     debug: false,
     version: 'head',
     language: 'en' as SupportedLang,

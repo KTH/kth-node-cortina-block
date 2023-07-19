@@ -1,12 +1,11 @@
-// @ts-nocheck
-
-import cheerio from 'cheerio'
+import { load } from 'cheerio'
 import url from 'url'
 import log from '@kth/log'
 import { Config } from './types'
 import { _getHostEnv, _getLanguage, _getEnvUrl, _buildUrl, _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
-import { generateConfig, _getEnvSpecificConfig, prepareDefaults } from './config'
+import { generateConfig, _getEnvSpecificConfig, prepareDefaults, generatePrepareConfig } from './config'
 
+type Block = { blockName: string; url: string }
 const defaults = _getEnvSpecificConfig()
 
 async function fetchBlock(url: string, headers: Headers | undefined, blockName: string) {
@@ -30,7 +29,7 @@ async function fetchBlock(url: string, headers: Headers | undefined, blockName: 
  * @private
  */
 function fetchAllBlocks(config: Config) {
-  const allblocks: { blockName: string; url: string }[] = []
+  const allblocks: Block[] = []
   for (const blockName in config.blocks) {
     const isMulti = blockName === 'language'
     allblocks.push({ blockName, url: _buildUrl(config, blockName, isMulti) })
@@ -132,20 +131,20 @@ export default function cortina(configIn: Config) {
  * @param {String} [config.selectors.secondaryMenuLocale='.block.links a[hreflang]'] CSS selectors for the secondary menu locale.
  * @returns {Object} Returns a modified blocks object.
  */
-export function prepare(blocksIn, configIn) {
+export function prepare(blocksIn: { [blockName: string]: string }, configIn: Config) {
   let $
   let $el
 
-  const blocks = JSON.parse(JSON.stringify(blocksIn))
+  const blocks = structuredClone(blocksIn)
 
-  const config = generateConfig(prepareDefaults, configIn)
+  const config = generatePrepareConfig(prepareDefaults, configIn)
 
   const currentEnv = _getEnvSpecificConfig().env
 
   /*
    * Creating the logo block
    */
-  $ = cheerio.load(blocks.image, {
+  $ = load(blocks.image, {
     xmlMode: true,
   })
 
@@ -161,7 +160,7 @@ export function prepare(blocksIn, configIn) {
   /*
    * Creating the site name block
    */
-  $ = cheerio.load(blocks.title, {
+  $ = load(blocks.title, {
     xmlMode: true,
   })
   $el = $(config.selectors.siteName)
@@ -182,7 +181,7 @@ export function prepare(blocksIn, configIn) {
   /*
    * Creating the locale link block
    */
-  $ = cheerio.load(blocks.language, {
+  $ = load(blocks.language, {
     xmlMode: true,
   })
 
@@ -210,7 +209,7 @@ export function prepare(blocksIn, configIn) {
 
   // Creating the locale link block for secondaryMenu
   if (blocks.secondaryMenu) {
-    $ = cheerio.load(blocks.secondaryMenu, {
+    $ = load(blocks.secondaryMenu, {
       xmlMode: true,
     })
 

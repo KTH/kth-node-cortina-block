@@ -26,6 +26,25 @@ type Blocks = {
   matomoAnalytics?: string
 }
 
+export type PrepareConfig = {
+  urls: {
+    prod: string
+    ref: string
+    request: string
+    app: string
+    siteUrl?: string
+  }
+  globalLink?: string
+  siteName?: string
+  localeText?: string
+  selectors: {
+    logo: string
+    siteName: string
+    localeLink: string
+    secondaryMenuLocale: string
+  }
+}
+
 export type Redis = {
   hgetallAsync: (key: string) => Promise<any>
   hmsetAsync: (key: string, value: any) => Promise<any>
