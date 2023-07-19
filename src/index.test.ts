@@ -1,5 +1,6 @@
 import log from '@kth/log'
 import cortina from './index'
+import { SupportedLang } from './types'
 
 log.init({ name: 'unit test', env: 'production' })
 
@@ -18,7 +19,7 @@ function createConfig() {
   return {
     url: '/',
     version: '1.0.0',
-    language: 'sv' as 'sv',
+    language: 'sv' as SupportedLang,
     blocks: {
       title: 'title',
       image: 'image',

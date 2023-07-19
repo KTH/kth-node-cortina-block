@@ -1,4 +1,4 @@
-import { CortinaBlockConfig, DefaultConfig } from './types'
+import { Config, Environment, SupportedLang } from './types'
 import { _getHostEnv } from './utils'
 
 /**
@@ -25,7 +25,7 @@ export const prepareDefaults = {
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
 //
-export function generateConfig(defaultConfig: DefaultConfig, config: CortinaBlockConfig) {
+export function generateConfig(defaultConfig: Config, config: Config) {
   const rval = structuredClone(defaultConfig)
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
@@ -49,15 +49,14 @@ export function generateConfig(defaultConfig: DefaultConfig, config: CortinaBloc
  * Eg. if we have imported a database dump from one environment in to the other.
  */
 export function _getEnvSpecificConfig() {
-  const prodDefaults = {
-    env: 'prod',
-    url: null,
+  const prodDefaults: Config = {
+    env: 'prod' as Environment,
+    url: 'null',
     debug: false,
     version: 'head',
-    language: 'en',
+    language: 'en' as SupportedLang,
     redisKey: 'CortinaBlock_',
     redisExpire: 600,
-    redis: null,
     blocks: {
       title: '1.260060',
       megaMenu: '1.855134',
@@ -74,15 +73,14 @@ export function _getEnvSpecificConfig() {
     },
   }
 
-  const refDefaults = {
-    env: 'ref',
-    url: null,
+  const refDefaults: Config = {
+    env: 'ref' as Environment,
+    url: '',
     debug: false,
     version: 'head',
-    language: 'en',
+    language: 'en' as SupportedLang,
     redisKey: 'CortinaBlock_',
     redisExpire: 600,
-    redis: null,
     blocks: {
       title: '1.260060',
       megaMenu: '1.855134',

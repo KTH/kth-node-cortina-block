@@ -1,6 +1,4 @@
-// @ts-nocheck
-
-import { CortinaBlockConfig, DefaultConfig } from './types'
+import { Config, Redis, SupportedLang } from './types'
 
 /**
  * Get the current environment from the given Host or Content Management Host.
@@ -21,16 +19,8 @@ export function _getHostEnv(hostUrl: string) {
  * Get language.
  * @param {*} lang the given language parameter.
  */
-export function _getLanguage(lang: string) {
+export function _getLanguage(lang: SupportedLang) {
   return lang === 'sv' ? 'sv' : 'en'
-}
-
-/**
- * Gets the block version, defaults to "head".
- * @param {*} version the given block version.
- */
-export function _getVersion(version: string) {
-  return version || 'head'
 }
 
 /**
@@ -49,10 +39,10 @@ export function _getEnvUrl(currentEnv: string, config: any) {
  * @param {*} type the block type eg. image
  * @param {*} multi
  */
-export function _buildUrl(config: CortinaBlockConfig, type: string, multi: boolean) {
+export function _buildUrl(config: Config, type: string, multi: boolean) {
   const language = _getLanguage(config.language)
   const block = multi ? config.blocks[type][language] : config.blocks[type]
-  const version = _getVersion(config.version)
+  const version = config.version || 'head'
   return `${config.url}${block}?v=${version}&l=${language}`
 }
 
@@ -63,7 +53,7 @@ export function _buildUrl(config: CortinaBlockConfig, type: string, multi: boole
  * @param {*} lang the given language.
  * @private
  */
-export function _buildRedisKey(prefix: string, lang: 'en' | 'sv') {
+export function _buildRedisKey(prefix: string, lang: SupportedLang) {
   return prefix + _getLanguage(lang)
 }
 
@@ -73,10 +63,9 @@ export function _buildRedisKey(prefix: string, lang: 'en' | 'sv') {
  * @returns {Promise}
  * @private
  */
-export function _getRedisItem(config: CortinaBlockConfig) {
-  const key = _buildRedisKey(config.redisKey, config.language)
-  const hej = config.redis.hgetallAsync(key)
-  return hej
+export function _getRedisItem(redis: Redis, redisKey: string, lang: SupportedLang) {
+  const key = _buildRedisKey(redisKey, lang)
+  return redis.hgetallAsync(key)
 }
 
 /**
