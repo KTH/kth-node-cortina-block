@@ -3,64 +3,36 @@ import cheerio from 'cheerio'
 import url from 'url'
 import log from '@kth/log'
 import { CortinaBlockConfig, DefaultConfig } from './types'
-
+import {
+  _getHostEnv,
+  _getLanguage,
+  _getVersion,
+  isLanguage,
+  _getEnvUrl,
+  _buildUrl,
+  _buildRedisKey,
+  _getRedisItem,
+  _setRedisItem,
+} from './utils'
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
 //
 function generateConfig(defaultConfig: DefaultConfig, config: CortinaBlockConfig) {
-  const defaultConfigCopy = structuredClone(defaultConfig)
-  const configCopy = structuredClone(config)
-  return { ...defaultConfigCopy, ...configCopy }
-}
-
-/**
- * Get the current environment from the given Host or Content Management Host.
- *
- * @param host the given host URL.
- */
-function _getHostEnv(hostUrl: string) {
-  if (
-    hostUrl.startsWith('https://www-r.referens.sys.kth') ||
-    hostUrl.startsWith('https://app-r.referens.sys.kth') ||
-    hostUrl.startsWith('http://localhost')
-  ) {
-    return 'ref'
+  const rval = structuredClone(defaultConfig)
+  for (const key in config) {
+    if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
+      if (key === 'redis') {
+        rval.redis = config.redis
+      } else if (typeof config[key] === 'object') {
+        rval[key] = { ...rval[key], ...config[key] }
+      } else {
+        rval[key] = config[key]
+      }
+    }
   }
-  return 'prod'
-}
-/**
- * Get language.
- * @param {*} lang the given language parameter.
- */
-function _getLanguage(lang: string) {
-  return lang === 'sv' ? 'sv' : 'en'
+  return rval
 }
 
-/**
- * Gets the block version, defaults to "head".
- * @param {*} version the given block version.
- */
-function _getVersion(version: string) {
-  return version || 'head'
-}
-
-/**
- * Check if it the given object is an object and if so, we asume that it is the language object.
- * @param blockObj the given object.
- * @returns {boolean} true if language object.
- */
-function isLanguage(blockObj: any) {
-  return typeof blockObj === 'object'
-}
-/**
- * Get the url for the current environmen.
- *
- * @param {*} currentEnv current environment.
- * @param {*} config the given config.
- */
-function _getEnvUrl(currentEnv: string, config: any) {
-  return config.urls[currentEnv]
-}
 /**
  * This function makes a decision based on the HOST_URL environment variable
  * on whether we are in production or referens and serves the correct config.
@@ -168,19 +140,6 @@ const prepareDefaults = {
   },
 }
 
-/**
- * Build API url to Cortins from where to retrieve the blocks.
- * @param {*} config the given config
- * @param {*} type the block type eg. image
- * @param {*} multi
- */
-function _buildUrl(config: CortinaBlockConfig, type: string, multi: boolean) {
-  const language = _getLanguage(config.language)
-  const block = multi ? config.blocks[type][language] : config.blocks[type]
-  const version = _getVersion(config.version)
-  return `${config.url}${block}?v=${version}&l=${language}`
-}
-
 async function fetchBlock(url: string, config: CortinaBlockConfig, blockName: string) {
   const headers = config.headers ?? {}
   try {
@@ -194,17 +153,6 @@ async function fetchBlock(url: string, config: CortinaBlockConfig, blockName: st
   } catch (err) {
     log.error(`WARNING! FAILED TO FETCH ${blockName} ${err}`)
   }
-}
-
-/**
- * Build up the Redis key
- *
- * @param {*} prefix the given prefix.
- * @param {*} lang the given language.
- * @private
- */
-function _buildRedisKey(prefix: string, lang: 'en' | 'sv') {
-  return prefix + _getLanguage(lang)
 }
 
 /**
@@ -247,36 +195,6 @@ function _getAll(config: CortinaBlockConfig) {
 }
 
 /**
- * Wrap a Redis get call in a Promise.
- * @param config
- * @returns {Promise}
- * @private
- */
-function _getRedisItem(config: CortinaBlockConfig) {
-  const key = _buildRedisKey(config.redisKey, config.language)
-  return config.redis.hgetallAsync(key)
-}
-
-/**
- * Wrap Redis set call in a Promise.
- * @param config
- * @param blocks
- * @returns {Promise}
- * @private
- */
-function _setRedisItem(config, blocks) {
-  const key = _buildRedisKey(config.redisKey, config.language)
-  return config.redis
-    .hmsetAsync(key, blocks)
-    .then(() => config.redis.expireAsync(key, config.redisExpire))
-    .then(() => blocks)
-}
-
-function areAllValuesEmptyString(obj) {
-  return Object.values(obj).every(val => val === '')
-}
-
-/**
  * Gets HTML blocks from Cortina using promises.
  * @param {Object} config - Configuration object.
  * @param {String} config.url - URL to the Cortina block API.
@@ -297,9 +215,8 @@ function areAllValuesEmptyString(obj) {
  * @param {String} [config.blocks.analytics=1.464751]
  * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
  */
-module.exports = function cortina(configIn) {
+export default function cortina(configIn) {
   const config = generateConfig(defaults, configIn)
-  console.log(config)
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
@@ -357,7 +274,7 @@ module.exports = function cortina(configIn) {
  * @param {String} [config.selectors.secondaryMenuLocale='.block.links a[hreflang]'] CSS selectors for the secondary menu locale.
  * @returns {Object} Returns a modified blocks object.
  */
-module.exports.prepare = function prepare(blocksIn, configIn) {
+export function prepare(blocksIn, configIn) {
   let $
   let $el
 
