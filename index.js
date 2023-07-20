@@ -309,6 +309,15 @@ function _setRedisItem(config, blocks) {
     .then(() => blocks)
 }
 
+function areAllValuesUndefined(obj) {
+  for (const key in obj) {
+    if (obj[key] !== '') {
+      return false
+    }
+  }
+  return true
+}
+
 /**
  * Gets HTML blocks from Cortina using promises.
  * @param {Object} config - Configuration object.
@@ -350,7 +359,10 @@ module.exports = function cortina(configIn) {
         return blocks
       }
 
-      return _getAll(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
+      return _getAll(config).then(cortinaBlocks => {
+        if (!areAllValuesUndefined(cortinaBlocks)) return _setRedisItem(config, cortinaBlocks)
+        else return cortinaBlocks
+      })
     })
     .catch(err => {
       if (config.debug) {
