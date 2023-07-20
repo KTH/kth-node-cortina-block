@@ -310,12 +310,7 @@ function _setRedisItem(config, blocks) {
 }
 
 function areAllValuesEmptyString(obj) {
-  for (const key in obj) {
-    if (obj[key] !== '') {
-      return false
-    }
-  }
-  return true
+  return Object.values(obj).every(val => val === '')
 }
 
 /**
