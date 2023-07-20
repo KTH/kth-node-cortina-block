@@ -100,7 +100,6 @@ export default function cortina(configIn: Config) {
       if (config.debug) {
         log.error('Redis failed:', err.message, err.code)
       }
-      const hej = err.code
       if (err.code === 'ECONNREFUSED' || err.code === 'CONNECTION_BROKEN') {
         if (config.debug) {
           log.log('Redis bad connection, getting from API...')
