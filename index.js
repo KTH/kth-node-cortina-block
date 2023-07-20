@@ -309,7 +309,7 @@ function _setRedisItem(config, blocks) {
     .then(() => blocks)
 }
 
-function areAllValuesUndefined(obj) {
+function areAllValuesEmptyString(obj) {
   for (const key in obj) {
     if (obj[key] !== '') {
       return false
@@ -360,7 +360,7 @@ module.exports = function cortina(configIn) {
       }
 
       return _getAll(config).then(cortinaBlocks => {
-        if (!areAllValuesUndefined(cortinaBlocks)) return _setRedisItem(config, cortinaBlocks)
+        if (!areAllValuesEmptyString(cortinaBlocks)) return _setRedisItem(config, cortinaBlocks)
         else return cortinaBlocks
       })
     })
