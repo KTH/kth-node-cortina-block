@@ -1,4 +1,3 @@
-const fetch = require('node-fetch')
 const log = require('@kth/log')
 const cortina = require('../../index')
 
@@ -35,22 +34,21 @@ function createConfig() {
   }
 }
 
-jest.mock('node-fetch')
-
-const { Response } = jest.requireActual('node-fetch')
+const helloWorld = '<div>Hello world!</div>'
 
 describe(`Cortina blocks tests`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        text: () => Promise.resolve(helloWorld),
+        ok: true,
+      })
+    )
   })
-
   afterAll(() => jest.resetAllMocks())
 
   test('gets all blocks', async () => {
-    const helloWorld = '<div>Hello world!</div>'
-
-    fetch.mockImplementation(() => Promise.resolve(new Response(helloWorld)))
-
     const result = await cortina(testConfig)
 
     expect(result.footer).toEqual(helloWorld)
@@ -64,16 +62,20 @@ describe(`Cortina blocks tests`, () => {
     expect(result.title).toEqual(helloWorld)
   })
 
-  test('yields errors', async () => {
-    fetch.mockImplementation(() => Promise.reject(new Error('Internal server error')))
-
-    let result
-    try {
-      result = await cortina(testConfig)
-    } catch (ex) {
-      expect(cortina).toThrow('Internal server error')
-    }
-    expect(result).toEqual({})
+  test('returns empty block content', async () => {
+    fetch.mockRejectedValue(new Error('Internal server error'))
+    const result = await cortina(testConfig)
+    expect(result).toEqual({
+      footer: '',
+      image: '',
+      klaroConfig: '',
+      language: '',
+      matomoAnalytics: '',
+      megaMenu: '',
+      search: '',
+      secondaryMenu: '',
+      title: '',
+    })
   })
 
   test('uses redis cache', async () => {
@@ -82,9 +84,6 @@ describe(`Cortina blocks tests`, () => {
 
     let calledGet = false
     let calledSet = false
-    const helloWorld = '<div>Hello world!</div>'
-
-    fetch.mockImplementation(() => Promise.resolve(new Response(helloWorld)))
 
     config.redis = {
       hgetallAsync(key) {
@@ -121,9 +120,6 @@ describe(`Cortina blocks tests`, () => {
   test('falls back to api if redis fails', async () => {
     const config = createConfig()
     let calledGet = false
-    const helloWorld = '<div>Hello world!</div>'
-
-    fetch.mockImplementation(() => Promise.resolve(new Response(helloWorld)))
 
     config.redis = {
       hgetallAsync() {

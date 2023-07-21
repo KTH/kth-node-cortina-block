@@ -1,9 +1,8 @@
 'use strict'
 
-const cheerio = require('cheerio')
 const url = require('url')
+const cheerio = require('cheerio')
 const log = require('@kth/log')
-const fetch = require('node-fetch')
 
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
@@ -218,21 +217,20 @@ function _buildUrl(config, type, multi) {
   return `${config.url}${block}?v=${version}&l=${language}`
 }
 
-function fetchUrl(urlIn, config, blockName) {
+async function fetchBlock(urlIn, config, blockName) {
   const headers = config.headers ? config.headers : {}
-  return fetch(urlIn, { headers })
-    .then(async result => {
-      if (result.ok) {
-        const text = await result.text()
-        const rval = { blockName, result: text }
-        return rval
-      }
-      log.error(`Failed to fetch cortina block at ${urlIn}: ${result.status}`)
+  try {
+    const response = await fetch(urlIn, { headers })
+    if (!response.ok) {
+      log.error(`Failed to fetch cortina block at ${urlIn}: ${response.status}`)
       return { blockName, result: '' }
-    })
-    .catch(err => {
-      log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
-    })
+    }
+    const result = await response.text()
+    return { blockName, result }
+  } catch (err) {
+    log.error(`WARNING! FAILED TO FETCH ${blockName} ${err.toString()}`)
+    return { blockName, result: '' }
+  }
 }
 
 /**
@@ -265,7 +263,7 @@ function _getAll(config) {
     }
   }
 
-  return Promise.all(allblocks.map(block => fetchUrl(block.url, config, block.blockName)))
+  return Promise.all(allblocks.map(block => fetchBlock(block.url, config, block.blockName)))
     .then(results => {
       const result = {}
       results.forEach(block => {
@@ -311,6 +309,10 @@ function _setRedisItem(config, blocks) {
     .then(() => blocks)
 }
 
+function areAllValuesEmptyString(obj) {
+  return Object.values(obj).every(val => val === '')
+}
+
 /**
  * Gets HTML blocks from Cortina using promises.
  * @param {Object} config - Configuration object.
@@ -352,7 +354,10 @@ module.exports = function cortina(configIn) {
         return blocks
       }
 
-      return _getAll(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
+      return _getAll(config).then(cortinaBlocks => {
+        if (!areAllValuesEmptyString(cortinaBlocks)) return _setRedisItem(config, cortinaBlocks)
+        else return cortinaBlocks
+      })
     })
     .catch(err => {
       if (config.debug) {
