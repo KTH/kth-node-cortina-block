@@ -1,8 +1,7 @@
 {
   "name": "@kth/cortina-block",
-  "version": "5.1.0",
+  "version": "5.0.13",
   "description": "Node.js module for fetching Cortina blocks and optionally cache using Redis.",
-  "automaticPublish": "true",
   "main": "index.js",
   "files": [
     "index.js"
