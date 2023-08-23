@@ -14,7 +14,7 @@
     "lint-v": "eslint \"**/*.js\" ",
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "tsc",
+    "build": "npm ci && tsc",
     "prepare": "if [ -f ./node_modules/.bin/husky ]; then husky install; fi"
   },
   "repository": {
