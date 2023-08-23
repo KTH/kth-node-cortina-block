@@ -1,7 +1,7 @@
 import { load } from 'cheerio'
 import url from 'url'
 import log from '@kth/log'
-import { Config } from './types'
+import { Config, ConfigIn, PrepareConfigIn } from './types'
 import { _getHostEnv, _getLanguage, _getEnvUrl, _buildUrl, _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
 import { generateConfig, _getEnvSpecificConfig, prepareDefaults, generatePrepareConfig } from './config'
 
@@ -75,7 +75,9 @@ function fetchAllBlocks(config: Config) {
  * @param {String} [config.blocks.analytics=1.464751]
  * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
  */
-export default function cortina(configIn: Config) {
+export default function cortina(configIn: ConfigIn): Promise<{
+  [blockName: string]: string
+}> {
   const config = generateConfig(defaults, configIn)
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
@@ -130,7 +132,7 @@ export default function cortina(configIn: Config) {
  * @param {String} [config.selectors.secondaryMenuLocale='.block.links a[hreflang]'] CSS selectors for the secondary menu locale.
  * @returns {Object} Returns a modified blocks object.
  */
-export function prepare(blocksIn: { [blockName: string]: string }, configIn: Config) {
+export function prepare(blocksIn: { [blockName: string]: string }, configIn: PrepareConfigIn) {
   let $
   let $el
 
@@ -247,3 +249,5 @@ export function prepare(blocksIn: { [blockName: string]: string }, configIn: Con
 
   return blocks
 }
+
+export * from './types'

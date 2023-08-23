@@ -1,4 +1,4 @@
-import { Config, Environment, SupportedLang, PrepareConfig } from './types'
+import { Config, ConfigIn, Environment, SupportedLang, PrepareConfig, PrepareConfigIn } from './types'
 import { _getHostEnv } from './utils'
 
 /**
@@ -22,7 +22,7 @@ export const prepareDefaults: PrepareConfig = {
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
 //
-export function generateConfig(defaultConfig: Config, config: Config) {
+export function generateConfig(defaultConfig: Config, config: ConfigIn) {
   const rval = structuredClone(defaultConfig)
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
@@ -38,13 +38,11 @@ export function generateConfig(defaultConfig: Config, config: Config) {
   return rval
 }
 
-export function generatePrepareConfig(prepareConfig: PrepareConfig, config: Config) {
+export function generatePrepareConfig(prepareConfig: PrepareConfig, config: PrepareConfigIn) {
   const rval = structuredClone(prepareConfig)
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
-      if (key === 'redis') {
-        rval[key] = config.redis
-      } else if (typeof config[key] === 'object') {
+      if (typeof config[key] === 'object') {
         rval[key] = { ...rval[key], ...config[key] }
       } else {
         rval[key] = config[key]

@@ -11,6 +11,12 @@ export type Config = {
   headers?: Headers
 }
 
+export type ConfigIn = {
+  language: SupportedLang
+  url: string
+  redis?: Redis
+}
+
 type Blocks = {
   title?: string
   megaMenu?: string
@@ -43,6 +49,19 @@ export type PrepareConfig = {
     localeLink: string
     secondaryMenuLocale: string
   }
+}
+
+export type PrepareConfigIn = {
+  urls: {
+    prod?: string
+    ref?: string
+    request: string
+    app: string
+    siteUrl?: string
+  }
+  globalLink?: boolean
+  siteName?: string
+  localeText?: string
 }
 
 export type Redis = {
