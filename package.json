@@ -4,7 +4,7 @@
   "description": "Node.js module for fetching Cortina blocks and optionally cache using Redis.",
   "main": "dist/index.js",
   "files": [
-    "index.js"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
