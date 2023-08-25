@@ -129,20 +129,7 @@ function _getEnvSpecificConfig() {
     redisKey: 'CortinaBlock_',
     redisExpire: 600,
     redis: null,
-    blocks: {
-      title: '1.260060',
-      megaMenu: '1.855134',
-      secondaryMenu: '1.865038',
-      image: '1.77257',
-      footer: '1.202278',
-      search: '1.77262',
-      language: {
-        en: '1.77273',
-        sv: '1.272446',
-      },
-      klaroConfig: '1.1011116',
-      matomoAnalytics: '1.714097',
-    },
+    blocks: prodDefaults.blocks,
   }
 
   let host = process.env.SERVER_HOST_URL
