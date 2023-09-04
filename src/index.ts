@@ -1,7 +1,7 @@
 import { load } from 'cheerio'
 import url from 'url'
 import log from '@kth/log'
-import { Config, ConfigIn, PrepareConfigIn } from './types'
+import { Config, PrepareConfigIn } from './types'
 import { _getHostEnv, _getLanguage, _getEnvUrl, _buildUrl, _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
 import { generateConfig, _getEnvSpecificConfig, prepareDefaults, generatePrepareConfig } from './config'
 
@@ -75,7 +75,7 @@ function fetchAllBlocks(config: Config) {
  * @param {String} [config.blocks.analytics=1.464751]
  * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
  */
-export default function cortina(configIn: ConfigIn): Promise<{
+export default function cortina(configIn: Config): Promise<{
   [blockName: string]: string
 }> {
   const config = generateConfig(defaults, configIn)

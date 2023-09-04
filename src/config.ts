@@ -1,4 +1,4 @@
-import { Config, ConfigIn, Environment, SupportedLang, PrepareConfig, PrepareConfigIn } from './types'
+import { Config, Environment, SupportedLang, PrepareConfig, PrepareConfigIn } from './types'
 import { _getHostEnv } from './utils'
 
 /**
@@ -22,7 +22,7 @@ export const prepareDefaults: PrepareConfig = {
 // Creates a new copy of default config with config
 // Note deep copy is limited to only the second level
 //
-export function generateConfig(defaultConfig: Config, config: ConfigIn) {
+export function generateConfig(defaultConfig: Config, config: Config) {
   const rval = structuredClone(defaultConfig)
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
@@ -84,7 +84,7 @@ export function _getEnvSpecificConfig() {
     },
   }
 
-  const refDefaults: Config = {
+  const refDefaults = {
     env: 'ref' as Environment,
     url: '',
     debug: false,

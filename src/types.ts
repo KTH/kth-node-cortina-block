@@ -7,14 +7,8 @@ export type Config = {
   redisKey: string
   redisExpire: number
   redis?: Redis
-  blocks: Blocks
+  blocks?: Blocks
   headers?: Headers
-}
-
-export type ConfigIn = {
-  language: SupportedLang
-  url: string
-  redis?: Redis
 }
 
 type Blocks = {
