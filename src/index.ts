@@ -32,7 +32,8 @@ function fetchAllBlocks(config: Config) {
   const allblocks: Block[] = []
   for (const blockName in config.blocks) {
     const isMulti = blockName === 'language'
-    allblocks.push({ blockName, url: _buildUrl(config, blockName, isMulti) })
+    const blockUrl = config.blocks[blockName]
+    allblocks.push({ blockName, url: `${blockUrl}${blockUrl}?v=${config.version}&l=${config.language}` })
   }
   return Promise.all(allblocks.map(block => fetchBlock(block.url, config.headers, block.blockName)))
     .then(results => {
@@ -82,15 +83,15 @@ export default function cortina(configIn: Config): Promise<{
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
-  if (!config.redis) {
+  if (!config.redisConfig) {
     return fetchAllBlocks(config)
   }
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using config.redisKey. If Redis connection fails, call API
   // directly and don't cache results.
-
-  return _getRedisItem(config.redis, config.redisKey, config.language)
+  if (!config.redisConfig) return fetchAllBlocks(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
+  return _getRedisItem(config.redisConfig.redis, config.redisConfig.redisKey, config.language)
     .then(blocks => {
       if (blocks) {
         return blocks

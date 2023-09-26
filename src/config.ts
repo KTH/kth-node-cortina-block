@@ -27,7 +27,7 @@ export function generateConfig(defaultConfig: Config, config: Config) {
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
       if (key === 'redis') {
-        rval.redis = config.redis
+        rval.redisConfig = config.redisConfig
       } else if (typeof config[key] === 'object') {
         rval[key] = { ...rval[key], ...config[key] }
       } else {
@@ -66,8 +66,6 @@ export function _getEnvSpecificConfig() {
     debug: false,
     version: 'head',
     language: 'en' as SupportedLang,
-    redisKey: 'CortinaBlock_',
-    redisExpire: 600,
     blocks: {
       title: '1.260060',
       megaMenu: '1.855134',
@@ -92,20 +90,7 @@ export function _getEnvSpecificConfig() {
     language: 'en' as SupportedLang,
     redisKey: 'CortinaBlock_',
     redisExpire: 600,
-    blocks: {
-      title: '1.260060',
-      megaMenu: '1.855134',
-      secondaryMenu: '1.865038',
-      image: '1.77257',
-      footer: '1.202278',
-      search: '1.77262',
-      language: {
-        en: '1.77273',
-        sv: '1.272446',
-      },
-      klaroConfig: '1.1011116',
-      matomoAnalytics: '1.714097',
-    },
+    blocks: prodDefaults.blocks,
   }
 
   let host = process.env.SERVER_HOST_URL
@@ -133,8 +118,6 @@ export function _getEnvSpecificConfig() {
     }
     // Check if in DEV environment and use block for localhost.
     if (host.startsWith(localhost)) {
-      refDefaults.blocks.klaroConfig = '1.1011389'
-      refDefaults.blocks.matomoAnalytics = '1.714097'
       return refDefaults
     }
     return refDefaults

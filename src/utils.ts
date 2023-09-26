@@ -15,13 +15,6 @@ export function _getHostEnv(hostUrl: string) {
   }
   return 'prod'
 }
-/**
- * Get language.
- * @param {*} lang the given language parameter.
- */
-export function _getLanguage(lang: SupportedLang) {
-  return lang === 'sv' ? 'sv' : 'en'
-}
 
 /**
  * Get the url for the current environmen.
@@ -31,19 +24,6 @@ export function _getLanguage(lang: SupportedLang) {
  */
 export function _getEnvUrl(currentEnv: string, config: any) {
   return config.urls[currentEnv]
-}
-
-/**
- * Build API url to Cortins from where to retrieve the blocks.
- * @param {*} config the given config
- * @param {*} type the block type eg. image
- * @param {*} multi
- */
-export function _buildUrl(config: Config, type: string, multi: boolean) {
-  const language = _getLanguage(config.language)
-  const block = multi ? config.blocks[type][language] : config.blocks[type]
-  const version = config.version || 'head'
-  return `${config.url}${block}?v=${version}&l=${language}`
 }
 
 /**

@@ -4,9 +4,11 @@ export type Config = {
   debug: boolean
   version: string
   language: SupportedLang
-  redisKey: string
-  redisExpire: number
-  redis?: Redis
+  redisConfig?: {
+    redis: Redis
+    redisKey: string
+    redisExpire: number
+  }
   blocks?: Blocks
   headers?: Headers
 }
