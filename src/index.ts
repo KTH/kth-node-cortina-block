@@ -1,9 +1,10 @@
 import { load } from 'cheerio'
 import url from 'url'
 import log from '@kth/log'
-import { Config, PrepareConfigIn } from './types'
-import { _getHostEnv, _getLanguage, _getEnvUrl, _buildUrl, _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
+import { Config, PrepareConfigIn, RedisConfig } from './types'
+import { _getHostEnv, _getEnvUrl, _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
 import { generateConfig, _getEnvSpecificConfig, prepareDefaults, generatePrepareConfig } from './config'
+export * from './types'
 
 type Block = { blockName: string; url: string }
 const defaults = _getEnvSpecificConfig()
@@ -22,12 +23,7 @@ async function fetchBlock(url: string, headers: Headers | undefined, blockName: 
   }
 }
 
-/**
- * Fetch all Cortina blocks from API.
- * @param config the given cinfig
- * @returns {Promise}
- * @private
- */
+// Fetch all Cortina blocks from API.
 function fetchAllBlocks(config: Config) {
   const allblocks: Block[] = []
   for (const blockName in config.blocks) {
@@ -55,43 +51,25 @@ function fetchAllBlocks(config: Config) {
     })
 }
 
-/**
- * Gets HTML blocks from Cortina using promises.
- * @param {Object} config - Configuration object.
- * @param {String} config.url - URL to the Cortina block API.
- * @param {Boolean} [config.debug=false] - Enable logging of Redis errors.
- * @param {String} [config.version=head] - Cortina API version.
- * @param {String} [config.language=en] - Language for the current session.
- * @param {String} [config.redisKey=CortinaBlock_] - Key prefix to use when caching.
- * @param {Number} [config.redisExpire=600] - Expiration time in seconds, defaults to 10 minutes.
- * @param {Object} [config.redis] - Redis client instance.
- * @param {Object} [config.blocks] - Object with Cortina block IDs.
- * @param {String} [config.blocks.title=1.260060]
- * @param {String} [config.blocks.image=1.77257]
- * @param {String} [config.blocks.footer=1.202278]
- * @param {String} [config.blocks.search=1.77262]
- * @param {Object} [config.blocks.language] - Object with language block IDs.
- * @param {String} [config.blocks.language.en=1.77273] - English language block.
- * @param {String} [config.blocks.language.sv=1.272446] - Swedish language block.
- * @param {String} [config.blocks.analytics=1.464751]
- * @returns {Promise} A promise that will evaluate to an object with the HTML blocks.
- */
-export default function cortina(configIn: Config): Promise<{
+// Gets HTML blocks from Cortina using promises.
+export default function cortina(
+  configIn: Config,
+  redisConfig?: RedisConfig
+): Promise<{
   [blockName: string]: string
 }> {
   const config = generateConfig(defaults, configIn)
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
-  if (!config.redisConfig) {
+  if (!redisConfig) {
     return fetchAllBlocks(config)
   }
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using config.redisKey. If Redis connection fails, call API
   // directly and don't cache results.
-  if (!config.redisConfig) return fetchAllBlocks(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
-  return _getRedisItem(config.redisConfig.redis, config.redisConfig.redisKey, config.language)
+  return _getRedisItem(redisConfig.redis, redisConfig.redisKey, config.language)
     .then(blocks => {
       if (blocks) {
         return blocks
@@ -110,7 +88,6 @@ export default function cortina(configIn: Config): Promise<{
 
         return fetchAllBlocks(config)
       }
-
       throw err
     })
 }
@@ -250,5 +227,3 @@ export function prepare(blocksIn: { [blockName: string]: string }, configIn: Pre
 
   return blocks
 }
-
-export * from './types'

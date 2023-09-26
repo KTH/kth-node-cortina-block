@@ -1,4 +1,4 @@
-import { Config, Redis, SupportedLang } from './types'
+import { Redis, SupportedLang } from './types'
 
 /**
  * Get the current environment from the given Host or Content Management Host.
@@ -34,7 +34,7 @@ export function _getEnvUrl(currentEnv: string, config: any) {
  * @private
  */
 export function _buildRedisKey(prefix: string, lang: SupportedLang) {
-  return prefix + _getLanguage(lang)
+  return prefix + lang
 }
 
 /**

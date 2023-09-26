@@ -4,13 +4,14 @@ export type Config = {
   debug: boolean
   version: string
   language: SupportedLang
-  redisConfig?: {
-    redis: Redis
-    redisKey: string
-    redisExpire: number
-  }
   blocks?: Blocks
   headers?: Headers
+}
+
+export type RedisConfig = {
+  redis: Redis
+  redisKey: string
+  redisExpire: number
 }
 
 type Blocks = {

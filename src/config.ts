@@ -26,9 +26,7 @@ export function generateConfig(defaultConfig: Config, config: Config) {
   const rval = structuredClone(defaultConfig)
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key) && config[key]) {
-      if (key === 'redis') {
-        rval.redisConfig = config.redisConfig
-      } else if (typeof config[key] === 'object') {
+      if (typeof config[key] === 'object') {
         rval[key] = { ...rval[key], ...config[key] }
       } else {
         rval[key] = config[key]
