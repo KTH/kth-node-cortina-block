@@ -29,7 +29,7 @@ function fetchAllBlocks(config: Config) {
   for (const blockName in config.blocks) {
     const isMulti = blockName === 'language'
     const blockUrl = config.blocks[blockName]
-    allblocks.push({ blockName, url: `${blockUrl}${blockUrl}?v=${config.version}&l=${config.language}` })
+    allblocks.push({ blockName, url: `${config.url}${blockUrl}?v=${config.version}&l=${config.language}` })
   }
   return Promise.all(allblocks.map(block => fetchBlock(block.url, config.headers, block.blockName)))
     .then(results => {
