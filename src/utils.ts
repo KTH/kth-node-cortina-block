@@ -1,25 +1,13 @@
 import { Redis, SupportedLang } from './types'
 
 /**
- * Build up the Redis key
- *
- * @param {*} prefix the given prefix.
- * @param {*} lang the given language.
- * @private
- */
-export function _buildRedisKey(prefix: string, lang: SupportedLang) {
-  return prefix + lang
-}
-
-/**
  * Wrap a Redis get call in a Promise.
  * @param config
  * @returns {Promise}
  * @private
  */
 export function _getRedisItem(redis: Redis, redisKey: string, lang: SupportedLang) {
-  const key = _buildRedisKey(redisKey, lang)
-  return redis.hgetallAsync(key)
+  return redis.hgetallAsync(redisKey + lang)
 }
 
 /**
@@ -29,10 +17,17 @@ export function _getRedisItem(redis: Redis, redisKey: string, lang: SupportedLan
  * @returns {Promise}
  * @private
  */
-export function _setRedisItem(config, blocks) {
-  const key = _buildRedisKey(config.redisKey, config.language)
-  return config.redis
-    .hmsetAsync(key, blocks)
-    .then(() => config.redis.expireAsync(key, config.redisExpire))
+export function _setRedisItem(
+  redis: Redis,
+  redisKey: string,
+  redisExpire: number,
+  lang: SupportedLang,
+  blocks: {
+    [blockName: string]: string
+  }
+) {
+  return redis
+    .hmsetAsync(redisKey + lang, blocks)
+    .then(() => redis.expireAsync(redisKey + lang, redisExpire))
     .then(() => blocks)
 }

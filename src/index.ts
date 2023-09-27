@@ -1,11 +1,9 @@
 import jsdom from 'jsdom'
 import log from '@kth/log'
 import { Config, PrepareConfigIn, RedisConfig } from './types'
-import { _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
+import { _getRedisItem, _setRedisItem } from './utils'
 import { prepareDefaults, prodDefaults, refDefaults } from './config'
 export * from './types'
-
-type Block = { blockName: string; url: string }
 
 async function fetchBlock(url: string, headers: Headers | undefined, blockName: string) {
   try {
@@ -23,7 +21,7 @@ async function fetchBlock(url: string, headers: Headers | undefined, blockName: 
 
 // Fetch all Cortina blocks from API.
 function fetchAllBlocks(config: Config) {
-  const allblocks: Block[] = []
+  const allblocks: { blockName: string; url: string }[] = []
   for (const blockName in config.blocks) {
     const isMulti = blockName === 'language'
     const blockUrl = config.blocks[blockName]
@@ -37,6 +35,7 @@ function fetchAllBlocks(config: Config) {
           result[block.blockName] = block.result
         }
       })
+      console.log(Object.keys(result))
       return result
     })
     .catch(err => {
@@ -65,6 +64,8 @@ export default function cortina(
     return fetchAllBlocks(config)
   }
 
+  const { redis, redisKey, redisExpire } = redisConfig
+
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using config.redisKey. If Redis connection fails, call API
   // directly and don't cache results.
@@ -74,7 +75,9 @@ export default function cortina(
         return blocks
       }
 
-      return fetchAllBlocks(config).then(cortinaBlocks => _setRedisItem(config, cortinaBlocks))
+      return fetchAllBlocks(config).then(cortinaBlocks =>
+        _setRedisItem(redis, redisKey, redisExpire, config.language, cortinaBlocks)
+      )
     })
     .catch(err => {
       if (config.debug) {

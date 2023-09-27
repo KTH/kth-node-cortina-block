@@ -64,7 +64,7 @@ export type PrepareConfigIn = {
 export type Redis = {
   hgetallAsync: (key: string) => Promise<any>
   hmsetAsync: (key: string, value: any) => Promise<any>
-  expireAsync: (key: string) => Promise<any>
+  expireAsync: (key: string, expire: number) => Promise<any>
 }
 
 export type Environment = 'prod' | 'ref'
