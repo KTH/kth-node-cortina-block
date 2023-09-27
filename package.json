@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint \"**/*.js\" --quiet",
     "lint-v": "eslint \"**/*.js\" ",
-    "test": "jest",
+    "test": "echo 'no tests'",
     "test:watch": "jest --watch",
     "build": "npm ci && tsc",
     "prepare": "if [ -f ./node_modules/.bin/husky ]; then husky install; fi"

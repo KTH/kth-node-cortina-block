@@ -1,13 +1,11 @@
 import jsdom from 'jsdom'
-import url from 'url'
 import log from '@kth/log'
 import { Config, PrepareConfigIn, RedisConfig } from './types'
-import { _getHostEnv, _getEnvUrl, _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
-import { generateConfig, _getEnvSpecificConfig, prepareDefaults, generatePrepareConfig } from './config'
+import { _buildRedisKey, _getRedisItem, _setRedisItem } from './utils'
+import { prepareDefaults, prodDefaults, refDefaults } from './config'
 export * from './types'
 
 type Block = { blockName: string; url: string }
-const defaults = _getEnvSpecificConfig()
 
 async function fetchBlock(url: string, headers: Headers | undefined, blockName: string) {
   try {
@@ -58,7 +56,8 @@ export default function cortina(
 ): Promise<{
   [blockName: string]: string
 }> {
-  const config = generateConfig(defaults, configIn)
+  const defaultConfig = configIn.env === 'prod' ? prodDefaults : refDefaults
+  const config = { ...defaultConfig, ...configIn }
   if (!config.url) {
     return Promise.reject(new Error('URL must be specified.'))
   }
@@ -92,24 +91,12 @@ export default function cortina(
     })
 }
 
-//const baseUrl = 'https://www-r.referens.sys.kth.se'
-
 const addBaseUrlToImgSrc = (document: Document, baseUrl: string) => {
   const imgElements = document.querySelectorAll('img')
   imgElements.forEach((imgElement: HTMLImageElement) => {
     const currentSrc = imgElement.getAttribute('src')
     if (currentSrc) {
       imgElement.setAttribute('src', baseUrl + currentSrc)
-    }
-  })
-}
-
-const addBaseUrlToAnchorHref = (document: Document, baseUrl: string) => {
-  const anchorElements = document.querySelectorAll('a')
-  anchorElements.forEach((anchorElement: HTMLAnchorElement) => {
-    const currentHref = anchorElement.getAttribute('href')
-    if (currentHref) {
-      anchorElement.setAttribute('href', baseUrl + currentHref)
     }
   })
 }
@@ -122,7 +109,6 @@ export const formatHtmlString = (htmlString: string, baseUrl: string) => {
   document.body.innerHTML = document.body.innerHTML.replace(/\s+/g, ' ')
 
   addBaseUrlToImgSrc(document, baseUrl)
-  //addBaseUrlToAnchorHref(document, baseUrl)
 
   const modifiedHtmlString = document.documentElement.outerHTML
   return modifiedHtmlString
@@ -137,11 +123,17 @@ const getSitenameBlock = (htmlString: string, selector: string, sitename: string
   return modifiedHtmlString
 }
 
-const getLocaleLinkBlock = (htmlString: string, selector: string, localeText: string) => {
+const getLocaleLinkBlock = (htmlString: string, selector: string, localeText: string, linkUrl: string) => {
   const { window } = new jsdom.JSDOM(htmlString)
   const document = window.document
-  const localeLink = document.querySelector(selector)
-  if (localeLink) localeLink.textContent = localeText
+  const localeLink = document.querySelector(selector) as HTMLAnchorElement
+  const url = new URL(linkUrl)
+  const langParam = url.searchParams.get('l')
+  url.searchParams.set('l', langParam === 'en' ? 'sv' : 'en')
+  if (localeLink) {
+    localeLink.textContent = localeText
+    localeLink.href = url.toString()
+  }
   const modifiedHtmlString = document.documentElement.outerHTML
   return modifiedHtmlString
 }
@@ -152,6 +144,7 @@ export function prepare(
   blocksIn: { [blockName: string]: string },
   configIn: PrepareConfigIn,
   baseUrl: string,
+  currentPath: string,
   selectors?: { string: string }
 ) {
   const defaultSelectors = {
@@ -161,13 +154,11 @@ export function prepare(
     secondaryMenuLocale: '.block.links a[hreflang]',
   }
 
-  const mergedSelectors = { ...defaultSelectors }
+  const mergedSelectors = { ...defaultSelectors, ...selectors }
 
   const blocks = structuredClone(blocksIn)
 
-  const config = generatePrepareConfig(prepareDefaults, configIn)
-
-  const currentEnv = _getEnvSpecificConfig().env
+  const config = { ...prepareDefaults, ...configIn }
 
   for (const key in blocks) {
     blocks[key] = formatHtmlString(blocks[key], baseUrl)
@@ -178,7 +169,8 @@ export function prepare(
     blocks.secondaryMenu = getLocaleLinkBlock(
       blocks.secondaryMenu,
       mergedSelectors.secondaryMenuLocale,
-      config.localeText
+      config.localeText,
+      currentPath
     )
   return blocks
 }
