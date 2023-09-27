@@ -1,4 +1,4 @@
-import { load } from 'cheerio'
+import jsdom from 'jsdom'
 import url from 'url'
 import log from '@kth/log'
 import { Config, PrepareConfigIn, RedisConfig } from './types'
@@ -92,27 +92,76 @@ export default function cortina(
     })
 }
 
-/**
- * Adjusts URLs to logo, locale link, and app link. Also sets app site name.
- * @param {Object} blocks - A blocks object.
- * @param {Object} config - Preparation configuration.
- * @param {String} [config.siteName] - Optional site name. Leave empty to use current value.
- * @param {String} [config.localeText] - Optional locale text. Leave empty to use current value.
- * @param {Object} config.urls - Plain object with URLs.
- * @param {String} [config.urls.prod='//www.kth.se']
- * @param {String} config.urls.request - Current request URL (usually from req.url).
- * @param {String} config.urls.app - The application host name and prefix path.
- * @param {String} config.urls.siteUrl - The url to overide app url in sitename if needed.
- * @param {Object} [config.selectors] - Optional plain object with CSS selectors.
- * @param {String} [config.selectors.logo='.mainLogo img'] CSS selectors for the logo.
- * @param {String} [config.selectors.siteName='.siteName a'] CSS selectors for the sitename.
- * @param {String} [config.selectors.localeLink='a.block.link[hreflang]'] CSS selectors for the language link.
- * @param {String} [config.selectors.secondaryMenuLocale='.block.links a[hreflang]'] CSS selectors for the secondary menu locale.
- * @returns {Object} Returns a modified blocks object.
- */
-export function prepare(blocksIn: { [blockName: string]: string }, configIn: PrepareConfigIn) {
-  let $
-  let $el
+//const baseUrl = 'https://www-r.referens.sys.kth.se'
+
+const addBaseUrlToImgSrc = (document: Document, baseUrl: string) => {
+  const imgElements = document.querySelectorAll('img')
+  imgElements.forEach((imgElement: HTMLImageElement) => {
+    const currentSrc = imgElement.getAttribute('src')
+    if (currentSrc) {
+      imgElement.setAttribute('src', baseUrl + currentSrc)
+    }
+  })
+}
+
+const addBaseUrlToAnchorHref = (document: Document, baseUrl: string) => {
+  const anchorElements = document.querySelectorAll('a')
+  anchorElements.forEach((anchorElement: HTMLAnchorElement) => {
+    const currentHref = anchorElement.getAttribute('href')
+    if (currentHref) {
+      anchorElement.setAttribute('href', baseUrl + currentHref)
+    }
+  })
+}
+
+export const formatHtmlString = (htmlString: string, baseUrl: string) => {
+  const { window } = new jsdom.JSDOM(htmlString)
+  const document = window.document
+
+  // remove unnecessary blank space
+  document.body.innerHTML = document.body.innerHTML.replace(/\s+/g, ' ')
+
+  addBaseUrlToImgSrc(document, baseUrl)
+  //addBaseUrlToAnchorHref(document, baseUrl)
+
+  const modifiedHtmlString = document.documentElement.outerHTML
+  return modifiedHtmlString
+}
+
+const getSitenameBlock = (htmlString: string, selector: string, sitename: string) => {
+  const { window } = new jsdom.JSDOM(htmlString)
+  const document = window.document
+  const sitenameLink = document.querySelector(selector)
+  if (sitenameLink) sitenameLink.textContent = sitename
+  const modifiedHtmlString = document.documentElement.outerHTML
+  return modifiedHtmlString
+}
+
+const getLocaleLinkBlock = (htmlString: string, selector: string, localeText: string) => {
+  const { window } = new jsdom.JSDOM(htmlString)
+  const document = window.document
+  const localeLink = document.querySelector(selector)
+  if (localeLink) localeLink.textContent = localeText
+  const modifiedHtmlString = document.documentElement.outerHTML
+  return modifiedHtmlString
+}
+
+//Adjusts URLs to logo, locale link, and app link. Also sets app site name.
+// Returns a modified blocks object.
+export function prepare(
+  blocksIn: { [blockName: string]: string },
+  configIn: PrepareConfigIn,
+  baseUrl: string,
+  selectors?: { string: string }
+) {
+  const defaultSelectors = {
+    logo: '.mainLogo img',
+    siteName: '.siteName a',
+    localeLink: 'a.block.link[hreflang]',
+    secondaryMenuLocale: '.block.links a[hreflang]',
+  }
+
+  const mergedSelectors = { ...defaultSelectors }
 
   const blocks = structuredClone(blocksIn)
 
@@ -120,110 +169,16 @@ export function prepare(blocksIn: { [blockName: string]: string }, configIn: Pre
 
   const currentEnv = _getEnvSpecificConfig().env
 
-  /*
-   * Creating the logo block
-   */
-  $ = load(blocks.image, {
-    xmlMode: true,
-  })
-
-  $el = $(config.selectors.logo)
-
-  const envUrl = _getEnvUrl(currentEnv, config)
-
-  if ($el.length) {
-    $el.attr('src', envUrl + $el.attr('src'))
-    blocks.image = $.html()
+  for (const key in blocks) {
+    blocks[key] = formatHtmlString(blocks[key], baseUrl)
   }
-
-  /*
-   * Creating the site name block
-   */
-  $ = load(blocks.title, {
-    xmlMode: true,
-  })
-  $el = $(config.selectors.siteName)
-  if ($el.length) {
-    if (config.urls.siteUrl) {
-      $el.attr('href', config.urls.siteUrl)
-    } else {
-      $el.attr('href', config.urls.app)
-    }
-
-    if (config.siteName) {
-      $el.text(config.siteName)
-    }
-
-    blocks.title = $.html()
-  }
-
-  /*
-   * Creating the locale link block
-   */
-  $ = load(blocks.language, {
-    xmlMode: true,
-  })
-
-  $el = $(config.selectors.localeLink)
-
-  if ($el.length) {
-    const urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
-    urlParts.search = null
-    urlParts.query = urlParts.query || {}
-
-    if ($el.attr('hreflang').startsWith('en')) {
-      $el.attr('href', $el.attr('href').replace('/en', '/'))
-      urlParts.query.l = 'en'
-    } else {
-      urlParts.query.l = 'sv'
-    }
-
-    if (config.localeText) {
-      $el.text(config.localeText)
-    }
-
-    $el.attr('href', url.format(urlParts))
-    blocks.language = $.html()
-  }
-
-  // Creating the locale link block for secondaryMenu
-  if (blocks.secondaryMenu) {
-    $ = load(blocks.secondaryMenu, {
-      xmlMode: true,
-    })
-
-    $el = $(config.selectors.secondaryMenuLocale)
-
-    if ($el.length) {
-      const urlParts = url.parse(url.resolve(config.urls.app || '', config.urls.request), true)
-      urlParts.search = null
-      urlParts.query = urlParts.query || {}
-      let langPathSegment = ''
-
-      if ($el.attr('hreflang').startsWith('en')) {
-        $el.attr('href', $el.attr('href').replace('/en', '/'))
-        urlParts.query.l = 'en'
-        langPathSegment = '/en'
-      } else {
-        urlParts.query.l = 'sv'
-      }
-
-      if (config.localeText) {
-        $el.text(config.localeText)
-      }
-
-      // If true, the language link should point to KTH startpage
-      if (config.globalLink) {
-        $el.attr('href', envUrl + langPathSegment)
-      } else {
-        $el.attr('href', url.format(urlParts))
-      }
-      blocks.secondaryMenu = $.html()
-    }
-  }
-
-  $ = null
-  $el = null
-
+  if (blocks.title && config.siteName)
+    blocks.title = getSitenameBlock(blocks.title, mergedSelectors.siteName, config.siteName)
+  if (blocks.secondaryMenu && config.localeText)
+    blocks.secondaryMenu = getLocaleLinkBlock(
+      blocks.secondaryMenu,
+      mergedSelectors.secondaryMenuLocale,
+      config.localeText
+    )
   return blocks
 }
