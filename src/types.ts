@@ -1,11 +1,12 @@
 export type Config = {
-  env: Environment
-  url: string
+  blockApiUrl: string
   debug: boolean
-  version: string
-  language: SupportedLang
-  blocks?: Blocks
+  blockVersion: string
   headers?: Headers
+  siteName?: { en: string; sv: string }
+  localeText?: { en: string; sv: string }
+  baseUrl: string
+  blocksConfig?: BlocksConfig
 }
 
 export type RedisConfig = {
@@ -14,7 +15,10 @@ export type RedisConfig = {
   redisExpire: number
 }
 
-type Blocks = {
+export type BlocksConfig = { [blockName: string]: string }
+export type BlocksObject = { [blockName: string]: string }
+
+/* {
   title?: string
   megaMenu?: string
   secondaryMenu?: string
@@ -27,46 +31,12 @@ type Blocks = {
   }
   klaroConfig?: string
   matomoAnalytics?: string
-}
-
-export type PrepareConfig = {
-  urls: {
-    prod: string
-    ref: string
-    request: string
-    app: string
-    siteUrl?: string
-  }
-  globalLink?: string
-  siteName?: string
-  localeText?: string
-  selectors: {
-    logo: string
-    siteName: string
-    localeLink: string
-    secondaryMenuLocale: string
-  }
-}
-
-export type PrepareConfigIn = {
-  urls: {
-    prod?: string
-    ref?: string
-    request: string
-    app: string
-    siteUrl?: string
-  }
-  globalLink?: boolean
-  siteName?: string
-  localeText?: string
-}
+} */
 
 export type Redis = {
   hgetallAsync: (key: string) => Promise<any>
   hmsetAsync: (key: string, value: any) => Promise<any>
   expireAsync: (key: string, expire: number) => Promise<any>
 }
-
-export type Environment = 'prod' | 'ref'
 
 export type SupportedLang = 'sv' | 'en'

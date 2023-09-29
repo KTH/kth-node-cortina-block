@@ -1,12 +1,6 @@
-import { Redis, SupportedLang } from './types'
+import { BlocksObject, Redis, SupportedLang } from './types'
 
-/**
- * Wrap a Redis get call in a Promise.
- * @param config
- * @returns {Promise}
- * @private
- */
-export function _getRedisItem(redis: Redis, redisKey: string, lang: SupportedLang) {
+export function getRedisItem<T>(redis: Redis, redisKey: string, lang: SupportedLang): Promise<T | undefined> {
   return redis.hgetallAsync(redisKey + lang)
 }
 
@@ -17,14 +11,12 @@ export function _getRedisItem(redis: Redis, redisKey: string, lang: SupportedLan
  * @returns {Promise}
  * @private
  */
-export function _setRedisItem(
+export function setRedisItem(
   redis: Redis,
   redisKey: string,
   redisExpire: number,
   lang: SupportedLang,
-  blocks: {
-    [blockName: string]: string
-  }
+  blocks: BlocksObject
 ) {
   return redis
     .hmsetAsync(redisKey + lang, blocks)
