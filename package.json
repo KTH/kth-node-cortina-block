@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint \"**/*.js\" --quiet",
     "lint-v": "eslint \"**/*.js\" ",
-    "test": "echo 'no tests'",
+    "test": "jest",
     "test:watch": "jest --watch",
     "build": "npm ci && tsc",
     "prepare": "if [ -f ./node_modules/.bin/husky ]; then husky install; fi"
@@ -36,7 +36,8 @@
   "dependencies": {
     "@kth/log": "^4.0.5",
     "cheerio": "^1.0.0-rc.12",
-    "jsdom": "^22.1.0"
+    "jsdom": "^22.1.0",
+    "kth-node-redis": "^3.2.0"
   },
   "peerDependencies": {
     "@kth/log": "^4.0.5"
