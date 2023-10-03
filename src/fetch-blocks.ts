@@ -25,7 +25,6 @@ export const fetchAllBlocks = async (
 ) => {
   const allblocks: { blockName: string; url: string }[] = []
   for (const blockName in blocksConfig) {
-    //const isMulti = blockName === 'language'
     const blockId = blocksConfig[blockName]
     allblocks.push({ blockName, url: `${blockApiUrl}${blockId}?v=${blockVerion}&l=${lang}` })
   }

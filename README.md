@@ -15,7 +15,7 @@ npm install @kth/cortina-block
 ## Usage
 
 ```javascript
-import cortinaMiddleware from '@kth/cortina-block'
+import { cortinaMiddleware } from '@kth/cortina-block'
 ```
 
 apply middleware
@@ -37,22 +37,7 @@ server.use(
 )
 ```
 
-Default blocks that will be fetched:
-
-```javascript
-{
-  title: '1.260060',
-  megaMenu: '1.855134',
-  secondaryMenu: '1.865038',
-  image: '1.77257',
-  footer: '1.202278',
-  search: '1.77262',
-  klaroConfig: '1.1137647',
-  matomoAnalytics: '1.714097',
-}
-```
-
-If you want to fetch other blocks or override the id of the default blocks, provide the optional blocksConfig:
+Default blocks that will be fetched can be found in config.ts. If you want to fetch other blocks or override the id of the default blocks, provide the optional blocksConfig:
 
 ```javascript
 const blocksConfig = {

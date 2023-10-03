@@ -6,19 +6,8 @@ import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis }
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { formatSitenameBlock, formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
+import { defaultBlocksConfig, supportedLanguages } from './config'
 export * from './types'
-
-const supportedLanguages: SupportedLang[] = ['sv', 'en']
-const defaultBlocksConfig = {
-  title: '1.260060',
-  megaMenu: '1.855134',
-  secondaryMenu: '1.865038',
-  image: '1.77257',
-  footer: '1.202278',
-  search: '1.77262',
-  klaroConfig: '1.1137647',
-  matomoAnalytics: '1.714097',
-}
 
 // Gets HTML blocks from Cortina using promises.
 export function cortina(
@@ -98,7 +87,7 @@ export function prepare(
   return blocks
 }
 
-export default function cortinaMiddleware(config: Config, redisConfig?: RedisConfig) {
+export function cortinaMiddleware(config: Config, redisConfig?: RedisConfig) {
   return async (req: Request, res: Response, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
     if (/^\/static\/.*/.test(req.url) || req.query.nocortinablocks !== undefined) {
