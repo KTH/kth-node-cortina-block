@@ -82,7 +82,7 @@ export function prepare(
       blocks.secondaryMenu,
       mergedSelectors.secondaryMenuLocale,
       localeText[language === 'sv' ? 'en' : 'sv'],
-      currentPath
+      `${resourceUrl}${currentPath}`
     )
   return blocks
 }
@@ -112,14 +112,7 @@ export function cortinaMiddleware(config: Config, redisConfig?: RedisConfig) {
     )
       .then(blocks => {
         // @ts-ignore
-        res.locals.blocks = prepare(
-          blocks,
-          config.resourceUrl,
-          `${req.protocol}://${req.get('host')}${req.url}`,
-          lang,
-          config.siteName,
-          config.localeText
-        )
+        res.locals.blocks = prepare(blocks, config.resourceUrl, req.url, lang, config.siteName, config.localeText)
         log.debug('Cortina blocks loaded.')
         next()
       })
