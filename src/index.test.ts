@@ -1,0 +1,127 @@
+import log from '@kth/log'
+import { cortina } from './index'
+import { Config, RedisConfig } from './types'
+
+log.init({ name: 'unit test', env: 'production' })
+
+const helloWorld = '<div>Hello world!</div>'
+const helloRedis = '<div>Hello redis!</div>'
+const redisResponse = {
+  title: helloRedis,
+  secondaryMenu: helloRedis,
+  megaMenu: helloRedis,
+  image: helloRedis,
+  footer: helloRedis,
+  search: helloRedis,
+}
+
+const createRedisClient = (shouldFail: boolean) => {
+  const error = new Error('Connection refused')
+  return {
+    hgetallAsync(key: string) {
+      if (shouldFail) return Promise.reject(error)
+
+      return Promise.resolve(redisResponse)
+    },
+
+    hmsetAsync(key: string, value: string) {
+      if (shouldFail) return Promise.reject(error)
+
+      return Promise.resolve(redisResponse)
+    },
+
+    expireAsync(value: string) {
+      if (shouldFail) return Promise.reject(error)
+
+      return Promise.resolve(redisResponse)
+    },
+  }
+}
+
+;(global.fetch as jest.Mock) = jest.fn(() =>
+  Promise.resolve({
+    text: () => Promise.resolve(helloWorld),
+    ok: true,
+  })
+)
+
+const config: Config = {
+  blockApiUrl: 'http://block-api.cortina',
+  blockVersion: '1',
+  resourceUrl: 'http://kth.se',
+}
+
+const redisConfig: RedisConfig = {
+  connection: {
+    host: 'localhost',
+    port: 0,
+  },
+  redisKey: 'cortina',
+  redisExpire: 1000,
+}
+
+describe(`cortina`, () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+  afterAll(() => jest.resetAllMocks())
+
+  /* test('get all blocks from block-api', async () => {
+    const result = await cortina(config.blockApiUrl, config.blockVersion, config.headers, 'en', config.blocksConfig)
+
+    expect(result.footer).toEqual(helloWorld)
+    expect(result.image).toEqual(helloWorld)
+    expect(result.megaMenu).toEqual(helloWorld)
+    expect(result.search).toEqual(helloWorld)
+    expect(result.secondaryMenu).toEqual(helloWorld)
+    expect(result.title).toEqual(helloWorld)
+  })
+
+  test('should thow internal server error and return empty object', async () => {
+    ;(global.fetch as jest.Mock) = jest.fn().mockRejectedValue(new Error('Internal server error'))
+
+    let result
+    try {
+      result = await cortina(config.blockApiUrl, config.blockVersion, config.headers, 'en', config.blocksConfig)
+    } catch (error) {
+      expect(cortina).toThrow('Internal server error')
+    }
+    expect(result).toEqual({})
+  })
+
+  test('get blocks from redis cache', async () => {
+    const result = await cortina(
+      config.blockApiUrl,
+      config.blockVersion,
+      config.headers,
+      'en',
+      config.blocksConfig,
+      redisConfig,
+      createRedisClient(false)
+    )
+    expect(result.footer).toEqual(helloRedis)
+    expect(result.image).toEqual(helloRedis)
+    expect(result.megaMenu).toEqual(helloRedis)
+    expect(result.search).toEqual(helloRedis)
+    expect(result.secondaryMenu).toEqual(helloRedis)
+    expect(result.title).toEqual(helloRedis)
+  }) */
+
+  test('fetch blocks from api if redis fails', async () => {
+    const result = await cortina(
+      config.blockApiUrl,
+      config.blockVersion,
+      config.headers,
+      'en',
+      config.blocksConfig,
+      redisConfig,
+      createRedisClient(true)
+    )
+    expect(result.footer).toEqual(helloWorld)
+    expect(result.image).toEqual(helloWorld)
+    expect(result.megaMenu).toEqual(helloWorld)
+    expect(result.search).toEqual(helloWorld)
+    expect(result.secondaryMenu).toEqual(helloWorld)
+    expect(result.title).toEqual(helloWorld)
+  })
+})
