@@ -84,6 +84,14 @@ export function prepare(
       localeText[language === 'sv' ? 'en' : 'sv'],
       `${resourceUrl}${currentPath}`
     )
+  if (blocks.intra_secondaryMenu && localeText) {
+    blocks.intra_secondaryMenu = formatLocaleLinkBlock(
+      blocks.intra_secondaryMenu,
+      mergedSelectors.secondaryMenuLocale,
+      localeText[language === 'sv' ? 'en' : 'sv'],
+      `https://intra.kth.se${currentPath}`
+    )
+  }
   return blocks
 }
 
