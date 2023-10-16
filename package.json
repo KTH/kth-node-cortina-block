@@ -35,7 +35,6 @@
   "license": "MIT",
   "dependencies": {
     "@kth/log": "^4.0.5",
-    "cheerio": "^1.0.0-rc.12",
     "jsdom": "^22.1.0",
     "kth-node-redis": "^3.2.0"
   },
