@@ -1,4 +1,5 @@
 import jsdom from 'jsdom'
+import { SupportedLang } from '.'
 
 export const formatImgSrc = (htmlString: string, baseUrl: string) => {
   const { window } = new jsdom.JSDOM(htmlString)
@@ -23,13 +24,18 @@ export const formatSitenameBlock = (htmlString: string, selector: string, sitena
   return modifiedHtmlString
 }
 
-export const formatLocaleLinkBlock = (htmlString: string, selector: string, localeText: string, linkUrl: string) => {
+export const formatLocaleLinkBlock = (
+  htmlString: string,
+  selector: string,
+  localeText: string,
+  linkUrl: string,
+  lang: SupportedLang
+) => {
   const { window } = new jsdom.JSDOM(htmlString)
   const document = window.document
   const localeLink = document.querySelector(selector) as HTMLAnchorElement
   const url = new URL(linkUrl)
-  const langParam = url.searchParams.get('l')
-  url.searchParams.set('l', langParam === 'en' ? 'sv' : 'en')
+  url.searchParams.set('l', lang === 'en' ? 'sv' : 'en')
   if (localeLink) {
     localeLink.textContent = localeText
     localeLink.href = url.toString()

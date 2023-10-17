@@ -44,8 +44,9 @@ describe('formatLocaleLinkBlock', () => {
     const selector = '#locale-link'
     const localeText = 'Svenska'
     const linkUrl = 'http://example.com/page?l=en'
+    const lang = 'en'
 
-    const formattedHtml = formatLocaleLinkBlock(htmlString, selector, localeText, linkUrl)
+    const formattedHtml = formatLocaleLinkBlock(htmlString, selector, localeText, linkUrl, lang)
 
     const { window } = new jsdom.JSDOM(formattedHtml)
     const document = window.document
