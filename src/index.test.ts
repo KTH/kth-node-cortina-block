@@ -37,13 +37,9 @@ const createRedisClient = (shouldFail: boolean) => {
     },
   }
 }
+const mockFetch = jest.fn()
 
-;(global.fetch as jest.Mock) = jest.fn(() =>
-  Promise.resolve({
-    text: () => Promise.resolve(helloWorld),
-    ok: true,
-  })
-)
+;(global.fetch as jest.Mock) = mockFetch
 
 const config: Config = {
   blockApiUrl: 'http://block-api.cortina',
@@ -63,10 +59,14 @@ const redisConfig: RedisConfig = {
 describe(`cortina`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockFetch.mockResolvedValue({
+      text: () => Promise.resolve(helloWorld),
+      ok: true,
+    })
   })
   afterAll(() => jest.resetAllMocks())
 
-  /* test('get all blocks from block-api', async () => {
+  test('get all blocks from block-api', async () => {
     const result = await cortina(config.blockApiUrl, config.blockVersion, config.headers, 'en', config.blocksConfig)
 
     expect(result.footer).toEqual(helloWorld)
@@ -78,7 +78,7 @@ describe(`cortina`, () => {
   })
 
   test('should thow internal server error and return empty object', async () => {
-    ;(global.fetch as jest.Mock) = jest.fn().mockRejectedValue(new Error('Internal server error'))
+    mockFetch.mockRejectedValue(new Error('Internal server error'))
 
     let result
     try {
@@ -105,7 +105,7 @@ describe(`cortina`, () => {
     expect(result.search).toEqual(helloRedis)
     expect(result.secondaryMenu).toEqual(helloRedis)
     expect(result.title).toEqual(helloRedis)
-  }) */
+  })
 
   test('fetch blocks from api if redis fails', async () => {
     const result = await cortina(
