@@ -51,8 +51,6 @@ const redisConfig: RedisConfig = {
     host: 'localhost',
     port: 0,
   },
-  redisKey: 'cortina',
-  redisExpire: 1000,
 }
 
 describe(`cortina`, () => {

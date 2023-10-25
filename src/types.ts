@@ -12,8 +12,6 @@ export type RedisConfig = {
     host: string
     port: number
   }
-  redisKey: string
-  redisExpire: number
 }
 
 export type BlocksConfig = { [blockName: string]: string }

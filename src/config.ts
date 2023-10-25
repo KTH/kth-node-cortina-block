@@ -11,3 +11,7 @@ export const defaultBlocksConfig = {
   klaroConfig: '1.1137647',
   matomoAnalytics: '1.714097',
 }
+export const redisItemSettings = {
+  redisKey: 'CortinaBlock_',
+  redisExpire: 600,
+}
