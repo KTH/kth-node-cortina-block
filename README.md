@@ -73,14 +73,6 @@ const blocksConfig = {
   - `klaroConfig` defaults to `1.1137647`.
   - `matomoAnalytics` defaults to `1.714097`.
 
-  You can also add application specific blocks to the options obejct like this:
-
-  ```javascript
-  addBlocks: {
-    placesSearch: '1.672888'
-  }
-  ```
-
 ### Returned blocks
 
 ```json
