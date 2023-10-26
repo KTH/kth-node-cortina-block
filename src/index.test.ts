@@ -43,7 +43,6 @@ const mockFetch = jest.fn()
 
 const config: Config = {
   blockApiUrl: 'http://block-api.cortina',
-  blockVersion: '1',
   resourceUrl: 'http://kth.se',
 }
 
@@ -67,7 +66,7 @@ describe(`cortina`, () => {
   afterAll(() => jest.resetAllMocks())
 
   test('get all blocks from block-api', async () => {
-    const result = await cortina(config.blockApiUrl, config.blockVersion, config.headers, 'en', config.blocksConfig)
+    const result = await cortina(config.blockApiUrl, config.headers, 'en', config.blocksConfig)
 
     expect(result.footer).toEqual(helloWorld)
     expect(result.image).toEqual(helloWorld)
@@ -82,7 +81,7 @@ describe(`cortina`, () => {
 
     let result
     try {
-      result = await cortina(config.blockApiUrl, config.blockVersion, config.headers, 'en', config.blocksConfig)
+      result = await cortina(config.blockApiUrl, config.headers, 'en', config.blocksConfig)
     } catch (error) {
       expect(cortina).toThrow('Internal server error')
     }
@@ -92,7 +91,6 @@ describe(`cortina`, () => {
   test('get blocks from redis cache', async () => {
     const result = await cortina(
       config.blockApiUrl,
-      config.blockVersion,
       config.headers,
       'en',
       config.blocksConfig,
@@ -110,7 +108,6 @@ describe(`cortina`, () => {
   test('fetch blocks from api if redis fails', async () => {
     const result = await cortina(
       config.blockApiUrl,
-      config.blockVersion,
       config.headers,
       'en',
       config.blocksConfig,

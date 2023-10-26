@@ -26,7 +26,6 @@ server.use(
   cortinaMiddleware(
     {
       blockApiUrl,
-      blockVersion,
       siteName,
       localeText,
       resourceUrl,
@@ -49,8 +48,6 @@ const blocksConfig = {
 
 - `blockApiUrl` is required. Should point to the Cortina block API endpoint.
 - `headers` is optional, pass headers used when fetching Cortina blocks.
-- `version` is optional, defaults to `head`. Change if needed.
-- `language` is optional, defaults to `en`.
 - `redisKey` is optional, defaults to `CortinaBlock_`. Used as a prefix
   for the Redis cache. The `language` setting will be appended.
 - `redisExpire` is optional, defaults to `600` (10 minutes). Sets

@@ -12,7 +12,6 @@ export * from './types'
 // Gets HTML blocks from Cortina using promises.
 export function cortina(
   blockApiUrl: string,
-  blockVersion: string,
   headers: Headers | undefined,
   language: SupportedLang,
   blocksConfigIn?: BlocksConfig,
@@ -26,7 +25,7 @@ export function cortina(
     throw new Error('Block api url must be specified.')
   }
   if (!redisConfig || !redisClient) {
-    return fetchAllBlocks(blocksConfig, blockApiUrl, blockVersion, language, headers)
+    return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers)
   }
 
   const { redisKey, redisExpire } = redisConfig
@@ -40,13 +39,13 @@ export function cortina(
         return storedBlocks
       }
 
-      return fetchAllBlocks(blocksConfig, blockApiUrl, blockVersion, language, headers).then(cortinaBlocks =>
+      return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers).then(cortinaBlocks =>
         setRedisItem(redisClient, redisKey, redisExpire, language, cortinaBlocks)
       )
     })
     .catch(err => {
       log.error('Redis failed:', err.message, err.code)
-      return fetchAllBlocks(blocksConfig, blockApiUrl, blockVersion, language, headers)
+      return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers)
     })
 }
 
@@ -111,15 +110,7 @@ export function cortinaMiddleware(config: Config, redisConfig?: RedisConfig) {
     // @ts-ignore
     let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
     if (!supportedLanguages.includes(lang)) [lang] = supportedLanguages
-    return cortina(
-      config.blockApiUrl,
-      config.blockVersion,
-      config.headers,
-      lang,
-      config.blocksConfig,
-      redisConfig,
-      redisClient
-    )
+    return cortina(config.blockApiUrl, config.headers, lang, config.blocksConfig, redisConfig, redisClient)
       .then(blocks => {
         // @ts-ignore
         res.locals.blocks = prepare(blocks, config.resourceUrl, req.url, lang, config.siteName, config.localeText)
