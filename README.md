@@ -48,13 +48,6 @@ const blocksConfig = {
 
 - `blockApiUrl` is required. Should point to the Cortina block API endpoint.
 - `headers` is optional, pass headers used when fetching Cortina blocks.
-- `redisKey` is optional, defaults to `CortinaBlock_`. Used as a prefix
-  for the Redis cache. The `language` setting will be appended.
-- `redisExpire` is optional, defaults to `600` (10 minutes). Sets
-  expiration time in seconds for blocks stored in Redis.
-- `redis` is optional. Set to a Redis client instance when you want to
-  enable Redis caching. Basically requires an object with `get` and
-  `set` functions.
 - `blocks` is optional. It's a plain object containing Cortina block IDs. The
   following IDs are default and can be overridden.
 
@@ -69,6 +62,8 @@ const blocksConfig = {
     - `sv` defaults to `1.272446`.
   - `klaroConfig` defaults to `1.1137647`.
   - `matomoAnalytics` defaults to `1.714097`.
+
+- `redisConfig` is optional. An object parsed from `kth-node-configuration`, containing `host` and `port`. If provided, blocks will be cached in redis.
 
 ### Returned blocks
 

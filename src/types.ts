@@ -5,13 +5,12 @@ export type Config = {
   localeText?: { en: string; sv: string }
   resourceUrl: string
   blocksConfig?: BlocksConfig
+  redisConfig?: RedisConfig
 }
 
 export type RedisConfig = {
-  connection: {
-    host: string
-    port: number
-  }
+  host: string
+  port: number
 }
 
 export type BlocksConfig = { [blockName: string]: string }

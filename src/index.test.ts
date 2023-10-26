@@ -47,10 +47,8 @@ const config: Config = {
 }
 
 const redisConfig: RedisConfig = {
-  connection: {
-    host: 'localhost',
-    port: 0,
-  },
+  host: 'localhost',
+  port: 0,
 }
 
 describe(`cortina`, () => {

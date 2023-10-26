@@ -96,16 +96,17 @@ export function prepare(
   return blocks
 }
 
-export function cortinaMiddleware(config: Config, redisConfig?: RedisConfig) {
+export function cortinaMiddleware(config: Config) {
   return async (req: Request, res: Response, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
     if (/^\/static\/.*/.test(req.url) || req.query.nocortinablocks !== undefined) {
       next()
       return
     }
+    const { redisConfig } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
-      redisClient = await redis('cortina', redisConfig.connection)
+      redisClient = await redis('cortina', redisConfig)
     }
     // @ts-ignore
     let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
