@@ -11,7 +11,7 @@ export const formatImgSrc = (htmlString: string, baseUrl: string) => {
       imgElement.setAttribute('src', baseUrl + currentSrc)
     }
   })
-  const modifiedHtmlString = document.documentElement.outerHTML
+  const modifiedHtmlString = document.body.innerHTML
   return modifiedHtmlString
 }
 
@@ -20,7 +20,7 @@ export const formatSitenameBlock = (htmlString: string, selector: string, sitena
   const document = window.document
   const sitenameLink = document.querySelector(selector)
   if (sitenameLink) sitenameLink.textContent = sitename
-  const modifiedHtmlString = document.documentElement.outerHTML
+  const modifiedHtmlString = document.body.innerHTML
   return modifiedHtmlString
 }
 
@@ -40,6 +40,6 @@ export const formatLocaleLinkBlock = (
     localeLink.textContent = localeText
     localeLink.href = url.toString()
   }
-  const modifiedHtmlString = document.documentElement.outerHTML
+  const modifiedHtmlString = document.body.innerHTML
   return modifiedHtmlString
 }
