@@ -23,16 +23,14 @@ apply middleware
 ```javascript
 server.use(
   '',
-  cortinaMiddleware(
-    {
-      blockApiUrl,
-      siteName,
-      localeText,
-      resourceUrl,
-      blocksConfig,
-    },
-    redisConfig
-  )
+  cortinaMiddleware({
+    blockApiUrl,
+    siteName,
+    localeText,
+    resourceUrl,
+    blocksConfig,
+    redisConfig,
+  })
 )
 ```
 
