@@ -6,7 +6,7 @@ import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis }
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { formatSitenameBlock, formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
-import { defaultBlocksConfig, supportedLanguages } from './config'
+import { defaultBlocksConfig, supportedLanguages, redisItemSettings } from './config'
 export * from './types'
 
 // Gets HTML blocks from Cortina using promises.
@@ -28,7 +28,7 @@ export function cortina(
     return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers)
   }
 
-  const { redisKey, redisExpire } = redisConfig
+  const { redisKey, redisExpire } = redisItemSettings
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using redisKey. If Redis connection fails, call API
@@ -96,16 +96,17 @@ export function prepare(
   return blocks
 }
 
-export function cortinaMiddleware(config: Config, redisConfig?: RedisConfig) {
+export function cortinaMiddleware(config: Config) {
   return async (req: Request, res: Response, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
     if (/^\/static\/.*/.test(req.url) || req.query.nocortinablocks !== undefined) {
       next()
       return
     }
+    const { redisConfig } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
-      redisClient = await redis('cortina', redisConfig.connection)
+      redisClient = await redis('cortina', redisConfig)
     }
     // @ts-ignore
     let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
