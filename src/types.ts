@@ -5,6 +5,7 @@ export type Config = {
   redisKey?: string
   skipCookieScriptsInDev?: boolean
   supportedLanguages?: SupportedLang[]
+  memCache?: boolean
 }
 
 export type RedisConfig = {
