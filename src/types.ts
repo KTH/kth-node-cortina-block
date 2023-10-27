@@ -6,6 +6,7 @@ export type Config = {
   resourceUrl: string
   blocksConfig?: BlocksConfig
   redisConfig?: RedisConfig
+  skipCookieScriptsInDev?: boolean
 }
 
 export type RedisConfig = {

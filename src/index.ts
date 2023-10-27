@@ -14,6 +14,7 @@ export function cortina(
   blockApiUrl: string,
   headers: Headers | undefined,
   language: SupportedLang,
+  skipCookieScriptsInDev?: boolean,
   blocksConfigIn?: BlocksConfig,
   redisConfig?: RedisConfig,
   redisClient?: Redis
@@ -21,6 +22,10 @@ export function cortina(
   [blockName: string]: string
 }> {
   const blocksConfig = { ...defaultBlocksConfig, ...blocksConfigIn }
+  if (skipCookieScriptsInDev) {
+    blocksConfig.klaroConfig = '1.1011389'
+    blocksConfig.matomoAnalytics = '1.714097'
+  }
   if (!blockApiUrl) {
     throw new Error('Block api url must be specified.')
   }
@@ -111,7 +116,15 @@ export function cortinaMiddleware(config: Config) {
     // @ts-ignore
     let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
     if (!supportedLanguages.includes(lang)) [lang] = supportedLanguages
-    return cortina(config.blockApiUrl, config.headers, lang, config.blocksConfig, redisConfig, redisClient)
+    return cortina(
+      config.blockApiUrl,
+      config.headers,
+      lang,
+      config.skipCookieScriptsInDev,
+      config.blocksConfig,
+      redisConfig,
+      redisClient
+    )
       .then(blocks => {
         // @ts-ignore
         res.locals.blocks = prepare(blocks, config.resourceUrl, req.url, lang, config.siteName, config.localeText)
