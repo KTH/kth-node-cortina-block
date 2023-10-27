@@ -1,14 +1,33 @@
 import log from '@kth/log'
 import { BlocksConfig, BlocksObject, SupportedLang } from '.'
+import { memoryCache } from './mem-cache'
 
-const fetchBlock = async (url: string, headers: Headers | undefined, blockName: string) => {
+const fetchBlock = async (url: string, headers: Headers | undefined, blockName: string, useMemCache?: boolean) => {
   try {
+    const lang = url.split('l=')[1]
+    const cacheKey = `${blockName}_${lang}`
+
+    const cacheHit = useMemCache ? await memoryCache.get(cacheKey) : undefined
+    if (cacheHit) {
+      log.info('Serve block', blockName, 'from memoryCache')
+      return { blockName, html: cacheHit }
+    }
+
+    if (useMemCache) {
+      log.info('Fetch block', blockName, 'from cortina')
+    }
     const res = await fetch(url, { headers })
     if (!res.ok) {
       log.error(`Failed to fetch cortina block at ${url}: ${res.status}`)
       return { blockName, html: '' }
     }
     const html = await res.text()
+
+    if (useMemCache) {
+      log.info('Save block', blockName, 'to memoryCache')
+      memoryCache.set(cacheKey, html, 600)
+    }
+
     return { blockName, html }
   } catch (err) {
     log.error(`WARNING! FAILED TO FETCH ${blockName} ${err}`)
@@ -20,14 +39,15 @@ export const fetchAllBlocks = async (
   blocksConfig: BlocksConfig,
   blockApiUrl: string,
   lang: SupportedLang,
-  headers?: Headers
+  headers?: Headers,
+  memCache?: boolean
 ) => {
   const allblocks: { blockName: string; url: string }[] = []
   for (const blockName in blocksConfig) {
     const blockId = blocksConfig[blockName]
     allblocks.push({ blockName, url: `${blockApiUrl}${blockId}?&l=${lang}` })
   }
-  return Promise.all(allblocks.map(block => fetchBlock(block.url, headers, block.blockName)))
+  return Promise.all(allblocks.map(block => fetchBlock(block.url, headers, block.blockName, memCache)))
     .then(fetchedBlocks => {
       const blocksObject: BlocksObject = {}
       fetchedBlocks.forEach(block => {
