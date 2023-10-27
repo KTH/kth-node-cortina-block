@@ -14,7 +14,7 @@ export function cortina(
   blockApiUrl: string,
   headers: Headers | undefined,
   language: SupportedLang,
-  skipCookieInDev?: boolean,
+  skipCookieScriptsInDev?: boolean,
   blocksConfigIn?: BlocksConfig,
   redisConfig?: RedisConfig,
   redisClient?: Redis
@@ -22,7 +22,7 @@ export function cortina(
   [blockName: string]: string
 }> {
   const blocksConfig = { ...defaultBlocksConfig, ...blocksConfigIn }
-  if (skipCookieInDev) {
+  if (skipCookieScriptsInDev) {
     blocksConfig.klaroConfig = '1.1011389'
     blocksConfig.matomoAnalytics = '1.714097'
   }
@@ -120,7 +120,7 @@ export function cortinaMiddleware(config: Config) {
       config.blockApiUrl,
       config.headers,
       lang,
-      config.skipCookieInDev,
+      config.skipCookieScriptsInDev,
       config.blocksConfig,
       redisConfig,
       redisClient
