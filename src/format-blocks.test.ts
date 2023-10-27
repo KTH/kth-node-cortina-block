@@ -29,10 +29,7 @@ it('should not format a block containing script tags', () => {
   </script>
   `
   const notModifiedHtmlString = formatImgSrc(htmlString, '')
-
-  const { window } = new jsdom.JSDOM(notModifiedHtmlString)
-  const scriptElements = window.document.querySelectorAll('script')
-  expect(scriptElements.length).toBe(1)
+  expect(notModifiedHtmlString).toEqual(htmlString)
 })
 
 describe('formatSitenameBlock', () => {
