@@ -22,6 +22,19 @@ describe('formatImgSrc', () => {
   })
 })
 
+it('should not format a block containing script tags', () => {
+  const htmlString = `
+  <script>
+    console.log("Hello world")
+  </script>
+  `
+  const notModifiedHtmlString = formatImgSrc(htmlString, '')
+
+  const { window } = new jsdom.JSDOM(notModifiedHtmlString)
+  const scriptElements = window.document.querySelectorAll('script')
+  expect(scriptElements.length).toBe(1)
+})
+
 describe('formatSitenameBlock', () => {
   it('should replace the text content of the selected siteBlock element with provided sitename', () => {
     const htmlString = '<html><body><div id="sitename">Old Text</div></body></html>'

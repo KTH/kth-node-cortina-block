@@ -2,6 +2,7 @@ import jsdom from 'jsdom'
 import { SupportedLang } from '.'
 
 export const formatImgSrc = (htmlString: string, baseUrl: string) => {
+  if (htmlString.includes('<script>')) return htmlString
   const { window } = new jsdom.JSDOM(htmlString)
   const document = window.document
   const imgElements = document.querySelectorAll('img')
