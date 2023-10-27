@@ -8,6 +8,7 @@ export type Config = {
   redisConfig?: RedisConfig
   skipCookieScriptsInDev?: boolean
   useStyle10?: boolean
+  memCache?: boolean
 }
 
 export type RedisConfig = {

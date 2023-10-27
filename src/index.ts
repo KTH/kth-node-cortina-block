@@ -18,7 +18,8 @@ export function cortina(
   blocksConfigIn?: BlocksConfig,
   redisConfig?: RedisConfig,
   redisClient?: Redis,
-  useStyle10?: boolean
+  useStyle10?: boolean,
+  memCache?: boolean
 ): Promise<{
   [blockName: string]: string
 }> {
@@ -31,7 +32,7 @@ export function cortina(
     throw new Error('Block api url must be specified.')
   }
   if (!redisConfig || !redisClient) {
-    return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers, useStyle10)
+    return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers, useStyle10, memCache)
   }
 
   const { redisKey: redisKeyBase, redisExpire } = redisItemSettings
@@ -111,6 +112,7 @@ export function cortinaMiddleware(config: Config) {
       return
     }
     const { redisConfig, skipCookieScriptsInDev = true } = config
+    const { memCache } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
       redisClient = await redis('cortina', redisConfig)
@@ -130,7 +132,8 @@ export function cortinaMiddleware(config: Config) {
       config.blocksConfig,
       redisConfig,
       redisClient,
-      config.useStyle10
+      config.useStyle10,
+      memCache
     )
       .then(blocks => {
         // @ts-ignore
