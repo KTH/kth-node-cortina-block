@@ -14,7 +14,7 @@ export function cortina(
   blockApiUrl: string,
   headers: Headers | undefined,
   language: SupportedLang,
-  skipCookieScriptsInDev?: boolean,
+  shouldSkipCookieScripts: boolean,
   blocksConfigIn?: BlocksConfig,
   redisConfig?: RedisConfig,
   redisClient?: Redis
@@ -22,7 +22,7 @@ export function cortina(
   [blockName: string]: string
 }> {
   const blocksConfig = { ...defaultBlocksConfig, ...blocksConfigIn }
-  if (skipCookieScriptsInDev) {
+  if (shouldSkipCookieScripts) {
     blocksConfig.klaroConfig = '1.1011389'
     blocksConfig.matomoAnalytics = '1.714097'
   }
@@ -108,7 +108,7 @@ export function cortinaMiddleware(config: Config) {
       next()
       return
     }
-    const { redisConfig } = config
+    const { redisConfig, skipCookieScriptsInDev = true } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
       redisClient = await redis('cortina', redisConfig)
@@ -116,11 +116,15 @@ export function cortinaMiddleware(config: Config) {
     // @ts-ignore
     let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
     if (!supportedLanguages.includes(lang)) [lang] = supportedLanguages
+    let shouldSkipCookieScripts = false
+    if (req.hostname.includes('localhost') && skipCookieScriptsInDev) {
+      shouldSkipCookieScripts = true
+    }
     return cortina(
       config.blockApiUrl,
       config.headers,
       lang,
-      config.skipCookieScriptsInDev,
+      shouldSkipCookieScripts,
       config.blocksConfig,
       redisConfig,
       redisClient
