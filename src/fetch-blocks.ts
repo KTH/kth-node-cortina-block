@@ -9,12 +9,12 @@ const fetchBlock = async (url: string, blockName: string, useMemCache?: boolean)
 
     const cacheHit = useMemCache ? await memoryCache.get(cacheKey) : undefined
     if (cacheHit) {
-      log.info('Serve block', blockName, 'from memoryCache')
+      log.info('Serve block', cacheKey, 'from memoryCache')
       return { blockName, html: cacheHit }
     }
 
     if (useMemCache) {
-      log.info('Fetch block', blockName, 'from cortina')
+      log.info('Fetch block', cacheKey, 'from cortina')
     }
     const res = await fetch(url)
     if (!res.ok) {
@@ -24,7 +24,7 @@ const fetchBlock = async (url: string, blockName: string, useMemCache?: boolean)
     const html = await res.text()
 
     if (useMemCache) {
-      log.info('Save block', blockName, 'to memoryCache')
+      log.info('Save block', cacheKey, 'to memoryCache')
       memoryCache.set(cacheKey, html, 600)
     }
 
