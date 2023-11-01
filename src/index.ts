@@ -6,7 +6,7 @@ import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis }
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { formatSitenameBlock, formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
-import { defaultBlocksConfig, supportedLanguages, redisItemSettings } from './config'
+import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
 
 // Gets HTML blocks from Cortina using promises.
@@ -23,8 +23,8 @@ export function cortina(
 }> {
   const blocksConfig = { ...defaultBlocksConfig, ...blocksConfigIn }
   if (shouldSkipCookieScripts) {
-    blocksConfig.klaroConfig = '1.1011389'
-    blocksConfig.matomoAnalytics = '1.714097'
+    blocksConfig.klaroConfig = devBlocks.klaroConfig
+    blocksConfig.matomoAnalytics = devBlocks.matomoAnalytics
   }
   if (!blockApiUrl) {
     throw new Error('Block api url must be specified.')
