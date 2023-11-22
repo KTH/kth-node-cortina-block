@@ -131,7 +131,14 @@ export function cortinaMiddleware(config: Config) {
     )
       .then(blocks => {
         // @ts-ignore
-        res.locals.blocks = prepare(blocks, config.resourceUrl, req.url, lang, config.siteName, config.localeText)
+        res.locals.blocks = prepare(
+          blocks,
+          config.resourceUrl,
+          req.originalUrl,
+          lang,
+          config.siteName,
+          config.localeText
+        )
         log.debug('Cortina blocks loaded.')
         next()
       })
