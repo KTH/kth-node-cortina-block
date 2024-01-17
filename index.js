@@ -155,7 +155,7 @@ function _getEnvSpecificConfig() {
     }
     // Check if in DEV environment and use block for localhost.
     if (host.startsWith(localhost)) {
-      refDefaults.blocks.klaroConfig = '1.1011389'
+      refDefaults.blocks.klaroConfig = '1.1137652'
       refDefaults.blocks.matomoAnalytics = '1.714097'
       return refDefaults
     }
