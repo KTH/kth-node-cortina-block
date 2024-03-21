@@ -1,6 +1,13 @@
 import log from '@kth/log'
 import { cortina, cortinaMiddleware } from './index'
-import { Config, RedisConfig } from './types'
+import { Config, RedisConfig, Redis } from './types'
+
+const mockRedisClient = {
+  hgetallAsync: jest.fn().mockResolvedValue(false),
+  hmsetAsync: jest.fn(),
+  expireAsync: jest.fn(),
+} as Redis
+jest.mock('kth-node-redis', () => () => mockRedisClient)
 
 log.init({ name: 'unit test', env: 'production' })
 
@@ -155,6 +162,48 @@ describe(`cortina`, () => {
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
+    })
+
+    test('use redis key with "_style10" for styleVersion 10', async () => {
+      const middleware = await cortinaMiddleware({
+        blockApiUrl: config.blockApiUrl,
+        siteName: { en: 'Webpage', sv: 'Websida' },
+        localeText: { en: 'English page', sv: 'Svensk sida' },
+        resourceUrl: 'https://www.kth.se',
+        redisConfig,
+        styleVersion: 10,
+      })
+      await middleware(mockReq, mockRes, mockNext)
+      expect(mockRedisClient.hgetallAsync).toBeCalledWith('CortinaBlock_style10_sv')
+      expect(mockRedisClient.hmsetAsync).toBeCalledWith('CortinaBlock_style10_sv', expect.anything())
+    })
+
+    test('use redis key with "_style9" for styleVersion 9', async () => {
+      const middleware = await cortinaMiddleware({
+        blockApiUrl: config.blockApiUrl,
+        siteName: { en: 'Webpage', sv: 'Websida' },
+        localeText: { en: 'English page', sv: 'Svensk sida' },
+        resourceUrl: 'https://www.kth.se',
+        redisConfig,
+        styleVersion: 9,
+      })
+      await middleware(mockReq, mockRes, mockNext)
+      expect(mockRedisClient.hgetallAsync).toBeCalledWith('CortinaBlock_style9_sv')
+      expect(mockRedisClient.hmsetAsync).toBeCalledWith('CortinaBlock_style9_sv', expect.anything())
+    })
+
+    test('use redis key with "_style9"  when styleVersion is missing', async () => {
+      const middleware = await cortinaMiddleware({
+        blockApiUrl: config.blockApiUrl,
+        siteName: { en: 'Webpage', sv: 'Websida' },
+        localeText: { en: 'English page', sv: 'Svensk sida' },
+        resourceUrl: 'https://www.kth.se',
+        redisConfig,
+        styleVersion: undefined,
+      })
+      await middleware(mockReq, mockRes, mockNext)
+      expect(mockRedisClient.hgetallAsync).toBeCalledWith('CortinaBlock_style9_sv')
+      expect(mockRedisClient.hmsetAsync).toBeCalledWith('CortinaBlock_style9_sv', expect.anything())
     })
   })
 })

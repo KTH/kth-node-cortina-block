@@ -34,7 +34,8 @@ export function cortina(
     return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers, styleVersion)
   }
 
-  const { redisKey, redisExpire } = redisItemSettings
+  const { redisKey: redisKeyBase, redisExpire } = redisItemSettings
+  const redisKey = redisKeyBase + (styleVersion == 10 ? 'style10_' : 'style9_')
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using redisKey. If Redis connection fails, call API
