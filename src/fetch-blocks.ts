@@ -20,12 +20,14 @@ export const fetchAllBlocks = async (
   blocksConfig: BlocksConfig,
   blockApiUrl: string,
   lang: SupportedLang,
-  headers?: Headers
+  headers?: Headers,
+  styleVersion?: number
 ) => {
+  const blockView = styleVersion == 10 ? 'style10' : 'style9'
   const allblocks: { blockName: string; url: string }[] = []
   for (const blockName in blocksConfig) {
     const blockId = blocksConfig[blockName]
-    allblocks.push({ blockName, url: `${blockApiUrl}${blockId}?&l=${lang}` })
+    allblocks.push({ blockName, url: `${blockApiUrl}${blockId}?l=${lang}&v=${blockView}` })
   }
   return Promise.all(allblocks.map(block => fetchBlock(block.url, headers, block.blockName)))
     .then(fetchedBlocks => {

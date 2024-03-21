@@ -1,5 +1,5 @@
 import log from '@kth/log'
-import { cortina } from './index'
+import { cortina, cortinaMiddleware } from './index'
 import { Config, RedisConfig } from './types'
 
 log.init({ name: 'unit test', env: 'production' })
@@ -42,7 +42,7 @@ const mockFetch = jest.fn()
 ;(global.fetch as jest.Mock) = mockFetch
 
 const config: Config = {
-  blockApiUrl: 'http://block-api.cortina',
+  blockApiUrl: 'http://block-api.cortina/',
   resourceUrl: 'http://kth.se',
 }
 
@@ -118,5 +118,43 @@ describe(`cortina`, () => {
     expect(result.search).toEqual(helloWorld)
     expect(result.secondaryMenu).toEqual(helloWorld)
     expect(result.title).toEqual(helloWorld)
+  })
+  describe(`styleVersion`, () => {
+    const mockReq = { query: {}, hostname: '' } as any
+    const mockRes = { locals: {} } as any
+    const mockNext = jest.fn() as any
+    test('fetch "view style10" for styleVersion 10', async () => {
+      const middleware = await cortinaMiddleware({
+        blockApiUrl: config.blockApiUrl,
+        siteName: { en: 'Webpage', sv: 'Websida' },
+        localeText: { en: 'English page', sv: 'Svensk sida' },
+        resourceUrl: 'https://www.kth.se',
+        styleVersion: 10,
+      })
+      await middleware(mockReq, mockRes, mockNext)
+      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style10', expect.anything())
+    })
+    test('fetch "view style9" for styleVersion 9', async () => {
+      const middleware = await cortinaMiddleware({
+        blockApiUrl: config.blockApiUrl,
+        siteName: { en: 'Webpage', sv: 'Websida' },
+        localeText: { en: 'English page', sv: 'Svensk sida' },
+        resourceUrl: 'https://www.kth.se',
+        styleVersion: 9,
+      })
+      await middleware(mockReq, mockRes, mockNext)
+      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
+    })
+    test('fetch "view style9" when styleVersion is missing', async () => {
+      const middleware = await cortinaMiddleware({
+        blockApiUrl: config.blockApiUrl,
+        siteName: { en: 'Webpage', sv: 'Websida' },
+        localeText: { en: 'English page', sv: 'Svensk sida' },
+        resourceUrl: 'https://www.kth.se',
+        styleVersion: undefined,
+      })
+      await middleware(mockReq, mockRes, mockNext)
+      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
+    })
   })
 })
