@@ -34,7 +34,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@kth/log": "^4.0.5",
+    "@kth/log": "^4.0.7",
     "cheerio": "^1.0.0-rc.12"
   },
   "peerDependencies": {
