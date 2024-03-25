@@ -136,7 +136,7 @@ describe(`cortina`, () => {
         siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
-        styleVersion: 10,
+        useStyle10: true,
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style10', expect.anything())
@@ -147,7 +147,7 @@ describe(`cortina`, () => {
         siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
-        styleVersion: 9,
+        useStyle10: false,
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
@@ -158,7 +158,7 @@ describe(`cortina`, () => {
         siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
-        styleVersion: undefined,
+        useStyle10: undefined,
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
@@ -171,7 +171,7 @@ describe(`cortina`, () => {
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         redisConfig,
-        styleVersion: 10,
+        useStyle10: true,
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockRedisClient.hgetallAsync).toBeCalledWith('CortinaBlock_style10_sv')
@@ -185,7 +185,7 @@ describe(`cortina`, () => {
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         redisConfig,
-        styleVersion: 9,
+        useStyle10: false,
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockRedisClient.hgetallAsync).toBeCalledWith('CortinaBlock_style9_sv')
@@ -199,7 +199,7 @@ describe(`cortina`, () => {
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         redisConfig,
-        styleVersion: undefined,
+        useStyle10: undefined,
       })
       await middleware(mockReq, mockRes, mockNext)
       expect(mockRedisClient.hgetallAsync).toBeCalledWith('CortinaBlock_style9_sv')

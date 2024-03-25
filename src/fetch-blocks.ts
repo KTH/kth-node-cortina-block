@@ -21,9 +21,9 @@ export const fetchAllBlocks = async (
   blockApiUrl: string,
   lang: SupportedLang,
   headers?: Headers,
-  styleVersion?: number
+  useStyle10?: boolean
 ) => {
-  const blockView = styleVersion == 10 ? 'style10' : 'style9'
+  const blockView = useStyle10 ? 'style10' : 'style9'
   const allblocks: { blockName: string; url: string }[] = []
   for (const blockName in blocksConfig) {
     const blockId = blocksConfig[blockName]

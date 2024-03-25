@@ -7,7 +7,7 @@ export type Config = {
   blocksConfig?: BlocksConfig
   redisConfig?: RedisConfig
   skipCookieScriptsInDev?: boolean
-  styleVersion?: number
+  useStyle10?: boolean
 }
 
 export type RedisConfig = {
