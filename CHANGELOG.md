@@ -2,6 +2,11 @@
 
 All notable changes for major version updates will be documented here.
 
+## 6.2.0
+
+Accepts a parameter `useStyle10` that serves blocks tailored to the new version of KTH-Style.  
+If the parameter is false or missing, blocks tailored for KTH-Style 9 will be fetched.
+
 ## 6.0.0
 
 - Rewrite in Typescript.
