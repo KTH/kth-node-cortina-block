@@ -35,7 +35,7 @@
   "license": "MIT",
   "dependencies": {
     "@kth/log": "^4.0.7",
-    "jsdom": "^22.1.0",
+    "jsdom": "^24.1.1",
     "kth-node-redis": "^3.3.0"
   },
   "peerDependencies": {
