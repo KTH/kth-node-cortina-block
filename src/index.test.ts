@@ -1,6 +1,6 @@
 import log from '@kth/log'
 import { cortina } from './index'
-import { Config, RedisConfig, Redis } from './types'
+import { Config, Redis } from './types'
 
 const mockRedisClient = {
   hgetallAsync: jest.fn().mockResolvedValue(false),
@@ -49,11 +49,6 @@ const config: Config = {
   blockApiUrl: 'http://block-api.cortina/',
 }
 
-const redisConfig: RedisConfig = {
-  host: 'localhost',
-  port: 0,
-}
-
 describe(`cortina`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -65,7 +60,12 @@ describe(`cortina`, () => {
   afterAll(() => jest.resetAllMocks())
 
   test('get all blocks from block-api', async () => {
-    const result = await cortina(config.blockApiUrl, 'en', true, config.blocksConfig)
+    const result = await cortina({
+      blockApiUrl: config.blockApiUrl,
+      language: 'en',
+      shouldSkipCookieScripts: true,
+      blocksConfig: config.blocksConfig,
+    })
 
     expect(result.footer).toEqual(helloWorld)
     expect(result.megaMenu).toEqual(helloWorld)
@@ -77,7 +77,12 @@ describe(`cortina`, () => {
 
     let result
     try {
-      result = await cortina(config.blockApiUrl, 'en', true, config.blocksConfig)
+      result = await cortina({
+        blockApiUrl: config.blockApiUrl,
+        language: 'en',
+        shouldSkipCookieScripts: true,
+        blocksConfig: config.blocksConfig,
+      })
     } catch (error) {
       expect(cortina).toThrow('Internal server error')
     }
@@ -85,28 +90,26 @@ describe(`cortina`, () => {
   })
 
   test('get blocks from redis cache', async () => {
-    const result = await cortina(
-      config.blockApiUrl,
-      'en',
-      true,
-      config.blocksConfig,
-      redisConfig,
-      createRedisClient(false)
-    )
+    const result = await cortina({
+      blockApiUrl: config.blockApiUrl,
+      language: 'en',
+      shouldSkipCookieScripts: true,
+      blocksConfig: config.blocksConfig,
+      redisClient: createRedisClient(false),
+    })
     expect(result.footer).toEqual(helloRedis)
     expect(result.megaMenu).toEqual(helloRedis)
     expect(result.search).toEqual(helloRedis)
   })
 
   test('fetch blocks from api if redis fails', async () => {
-    const result = await cortina(
-      config.blockApiUrl,
-      'en',
-      true,
-      config.blocksConfig,
-      redisConfig,
-      createRedisClient(true)
-    )
+    const result = await cortina({
+      blockApiUrl: config.blockApiUrl,
+      language: 'en',
+      shouldSkipCookieScripts: true,
+      blocksConfig: config.blocksConfig,
+      redisClient: createRedisClient(true),
+    })
     expect(result.footer).toEqual(helloWorld)
     expect(result.megaMenu).toEqual(helloWorld)
     expect(result.search).toEqual(helloWorld)

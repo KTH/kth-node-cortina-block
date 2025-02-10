@@ -2,33 +2,34 @@ import { NextFunction, Request } from 'express'
 import log from '@kth/log'
 import redis from 'kth-node-redis'
 
-import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
+import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
 
 // Gets HTML blocks from Cortina using promises.
-export function cortina(
-  blockApiUrl: string,
-  language: SupportedLang,
-  shouldSkipCookieScripts: boolean,
-  blocksConfigIn?: BlocksConfig,
-  redisConfig?: RedisConfig,
+export function cortina(options: {
+  blockApiUrl: string
+  language: SupportedLang
+  shouldSkipCookieScripts: boolean
+  blocksConfig?: BlocksConfig
   redisClient?: Redis
-): Promise<{
+}): Promise<{
   [blockName: string]: string
 }> {
-  const blocksConfig = { ...defaultBlocksConfig, ...blocksConfigIn }
+  const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient } = options
+
+  const fullBlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
-    blocksConfig.klaroConfig = devBlocks.klaroConfig
-    blocksConfig.matomoAnalytics = devBlocks.matomoAnalytics
+    fullBlocksConfig.klaroConfig = devBlocks.klaroConfig
+    fullBlocksConfig.matomoAnalytics = devBlocks.matomoAnalytics
   }
   if (!blockApiUrl) {
     throw new Error('Block api url must be specified.')
   }
-  if (!redisConfig || !redisClient) {
-    return fetchAllBlocks(blocksConfig, blockApiUrl, language)
+  if (!redisClient) {
+    return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
   }
 
   const { redisKey, redisExpire } = redisItemSettings
@@ -42,13 +43,13 @@ export function cortina(
         return storedBlocks
       }
 
-      return fetchAllBlocks(blocksConfig, blockApiUrl, language).then(cortinaBlocks =>
+      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language).then(cortinaBlocks =>
         setRedisItem(redisClient, redisKey, redisExpire, language, cortinaBlocks)
       )
     })
     .catch(err => {
       log.error('Redis failed:', err.message, err.code)
-      return fetchAllBlocks(blocksConfig, blockApiUrl, language)
+      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
     })
 }
 
@@ -65,13 +66,20 @@ export function cortinaMiddleware(config: Config) {
       redisClient = await redis('cortina', redisConfig)
     }
     // @ts-ignore
-    let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
-    if (!supportedLanguages.includes(lang)) [lang] = supportedLanguages
+    let language = (res.locals.locale?.language as SupportedLang) ?? 'sv'
+    if (!supportedLanguages.includes(language)) [language] = supportedLanguages
     let shouldSkipCookieScripts = false
     if (req.hostname.includes('localhost') && skipCookieScriptsInDev) {
       shouldSkipCookieScripts = true
     }
-    return cortina(config.blockApiUrl, lang, shouldSkipCookieScripts, config.blocksConfig, redisConfig, redisClient)
+    const { blockApiUrl, blocksConfig } = config
+    return cortina({
+      blockApiUrl,
+      language,
+      shouldSkipCookieScripts,
+      blocksConfig,
+      redisClient,
+    })
       .then(blocks => {
         // @ts-ignore
         res.locals.blocks = blocks
