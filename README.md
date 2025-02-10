@@ -25,7 +25,6 @@ server.use(
   '',
   cortinaMiddleware({
     blockApiUrl,
-    localeText,
     resourceUrl,
     blocksConfig,
     redisConfig,
@@ -49,7 +48,6 @@ const blocksConfig = {
   following IDs are default and can be overridden.
 
   - `megaMenu` defaults to `1.855134`.
-  - `secondaryMenu` defaults to `1.865038`.
   - `footer` defaults to `1.202278`.
   - `search` defaults to `1.77262`.
   - `language` optional object with language block IDs.
@@ -65,7 +63,6 @@ const blocksConfig = {
 ```json
 
 megaMenu: "\n\n\n\n  <nav class=\"b…\n     </nav>\n\n  \n\n",
-secondaryMenu: "\n\n\n  <div class=\"blo…   </ul>\n  </div>\n\n\n",
 footer: "\n\n\n  <div class=\"blo…  </div>\n  </div>\n\n\n",
 search: "\n\n\n  <div class=\"blo…aded=!0);</script>\n\n\n",
 language: "\n\n\n  <a class=\"block…KTH på svenska</a>\n\n\n",

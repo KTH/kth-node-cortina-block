@@ -4,7 +4,7 @@ import redis from 'kth-node-redis'
 
 import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
-import { formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
+import { formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
@@ -58,18 +58,10 @@ export function cortina(
 
 //Adjusts URLs to logo, locale link, and app link. Also sets app site name.
 // Returns a modified blocks object.
-export function prepare(
-  blocksIn: BlocksObject,
-  resourceUrl: string,
-  currentPath: string,
-  language: SupportedLang,
-  localeText?: { en: string; sv: string },
-  selectors?: { [selectorName: string]: string }
-) {
+export function prepare(blocksIn: BlocksObject, resourceUrl: string, selectors?: { [selectorName: string]: string }) {
   const defaultSelectors = {
     logo: '.mainLogo img',
     localeLink: 'a.block.link[hreflang]',
-    secondaryMenuLocale: '.block.links a[hreflang]',
   }
 
   const mergedSelectors = { ...defaultSelectors, ...selectors }
@@ -78,23 +70,6 @@ export function prepare(
 
   for (const key in blocks) {
     blocks[key] = formatImgSrc(blocks[key], resourceUrl)
-  }
-  if (blocks.secondaryMenu && localeText)
-    blocks.secondaryMenu = formatLocaleLinkBlock(
-      blocks.secondaryMenu,
-      mergedSelectors.secondaryMenuLocale,
-      localeText[language === 'sv' ? 'en' : 'sv'],
-      `${resourceUrl}${currentPath}`,
-      language
-    )
-  if (blocks.intra_secondaryMenu && localeText) {
-    blocks.intra_secondaryMenu = formatLocaleLinkBlock(
-      blocks.intra_secondaryMenu,
-      mergedSelectors.secondaryMenuLocale,
-      localeText[language === 'sv' ? 'en' : 'sv'],
-      `https://intra.kth.se${currentPath}`,
-      language
-    )
   }
   return blocks
 }
@@ -130,7 +105,7 @@ export function cortinaMiddleware(config: Config) {
     )
       .then(blocks => {
         // @ts-ignore
-        res.locals.blocks = prepare(blocks, config.resourceUrl, req.originalUrl, lang, config.localeText)
+        res.locals.blocks = prepare(blocks, config.resourceUrl)
         log.debug('Cortina blocks loaded.')
         next()
       })

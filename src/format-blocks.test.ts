@@ -1,4 +1,4 @@
-import { formatImgSrc, formatLocaleLinkBlock } from './format-blocks'
+import { formatImgSrc } from './format-blocks'
 import jsdom from 'jsdom'
 
 describe('formatImgSrc', () => {
@@ -30,25 +30,4 @@ it('should not format a block containing script tags', () => {
   `
   const notModifiedHtmlString = formatImgSrc(htmlString, '')
   expect(notModifiedHtmlString).toEqual(htmlString)
-})
-
-describe('formatLocaleLinkBlock', () => {
-  it('should replace the text content and href of the selected anchor element with  provided localeText and linkUrl', () => {
-    const htmlString = '<html><body><a id="locale-link" href="/page?l=en">English</a></body></html>'
-    const selector = '#locale-link'
-    const localeText = 'Svenska'
-    const linkUrl = 'http://example.com/page?l=en'
-    const lang = 'en'
-
-    const formattedHtml = formatLocaleLinkBlock(htmlString, selector, localeText, linkUrl, lang)
-
-    const { window } = new jsdom.JSDOM(formattedHtml)
-    const document = window.document
-
-    const localeLink = document.querySelector(selector) as HTMLAnchorElement
-
-    expect(localeLink.textContent).toBe(localeText)
-
-    expect(localeLink.href).toBe(linkUrl.replace('en', 'sv'))
-  })
 })
