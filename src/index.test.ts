@@ -65,7 +65,7 @@ describe(`cortina`, () => {
   afterAll(() => jest.resetAllMocks())
 
   test('get all blocks from block-api', async () => {
-    const result = await cortina(config.blockApiUrl, config.headers, 'en', true, config.blocksConfig)
+    const result = await cortina(config.blockApiUrl, 'en', true, config.blocksConfig)
 
     expect(result.footer).toEqual(helloWorld)
     expect(result.megaMenu).toEqual(helloWorld)
@@ -77,7 +77,7 @@ describe(`cortina`, () => {
 
     let result
     try {
-      result = await cortina(config.blockApiUrl, config.headers, 'en', true, config.blocksConfig)
+      result = await cortina(config.blockApiUrl, 'en', true, config.blocksConfig)
     } catch (error) {
       expect(cortina).toThrow('Internal server error')
     }
@@ -87,7 +87,6 @@ describe(`cortina`, () => {
   test('get blocks from redis cache', async () => {
     const result = await cortina(
       config.blockApiUrl,
-      config.headers,
       'en',
       true,
       config.blocksConfig,
@@ -102,7 +101,6 @@ describe(`cortina`, () => {
   test('fetch blocks from api if redis fails', async () => {
     const result = await cortina(
       config.blockApiUrl,
-      config.headers,
       'en',
       true,
       config.blocksConfig,

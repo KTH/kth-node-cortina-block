@@ -1,6 +1,5 @@
 export type Config = {
   blockApiUrl: string
-  headers?: Headers
   blocksConfig?: BlocksConfig
   redisConfig?: RedisConfig
   skipCookieScriptsInDev?: boolean

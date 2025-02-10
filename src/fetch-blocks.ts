@@ -1,9 +1,9 @@
 import log from '@kth/log'
 import { BlocksConfig, BlocksObject, SupportedLang } from '.'
 
-const fetchBlock = async (url: string, headers: Headers | undefined, blockName: string) => {
+const fetchBlock = async (url: string, blockName: string) => {
   try {
-    const res = await fetch(url, { headers })
+    const res = await fetch(url)
     if (!res.ok) {
       log.error(`Failed to fetch cortina block at ${url}: ${res.status}`)
       return { blockName, html: '' }
@@ -16,18 +16,13 @@ const fetchBlock = async (url: string, headers: Headers | undefined, blockName: 
 }
 
 // Fetch all Cortina blocks from API.
-export const fetchAllBlocks = async (
-  blocksConfig: BlocksConfig,
-  blockApiUrl: string,
-  lang: SupportedLang,
-  headers?: Headers
-) => {
+export const fetchAllBlocks = async (blocksConfig: BlocksConfig, blockApiUrl: string, lang: SupportedLang) => {
   const allblocks: { blockName: string; url: string }[] = []
   for (const blockName in blocksConfig) {
     const blockId = blocksConfig[blockName]
     allblocks.push({ blockName, url: `${blockApiUrl}${blockId}?l=${lang}` })
   }
-  return Promise.all(allblocks.map(block => fetchBlock(block.url, headers, block.blockName)))
+  return Promise.all(allblocks.map(block => fetchBlock(block.url, block.blockName)))
     .then(fetchedBlocks => {
       const blocksObject: BlocksObject = {}
       fetchedBlocks.forEach(block => {

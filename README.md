@@ -42,7 +42,6 @@ const blocksConfig = {
 ## Options
 
 - `blockApiUrl` is required. Should point to the Cortina block API endpoint.
-- `headers` is optional, pass headers used when fetching Cortina blocks.
 - `blocks` is optional. It's a plain object containing Cortina block IDs. The
   following IDs are default and can be overridden.
 

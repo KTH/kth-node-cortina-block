@@ -11,7 +11,6 @@ export * from './types'
 // Gets HTML blocks from Cortina using promises.
 export function cortina(
   blockApiUrl: string,
-  headers: Headers | undefined,
   language: SupportedLang,
   shouldSkipCookieScripts: boolean,
   blocksConfigIn?: BlocksConfig,
@@ -29,7 +28,7 @@ export function cortina(
     throw new Error('Block api url must be specified.')
   }
   if (!redisConfig || !redisClient) {
-    return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers)
+    return fetchAllBlocks(blocksConfig, blockApiUrl, language)
   }
 
   const { redisKey, redisExpire } = redisItemSettings
@@ -43,13 +42,13 @@ export function cortina(
         return storedBlocks
       }
 
-      return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers).then(cortinaBlocks =>
+      return fetchAllBlocks(blocksConfig, blockApiUrl, language).then(cortinaBlocks =>
         setRedisItem(redisClient, redisKey, redisExpire, language, cortinaBlocks)
       )
     })
     .catch(err => {
       log.error('Redis failed:', err.message, err.code)
-      return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers)
+      return fetchAllBlocks(blocksConfig, blockApiUrl, language)
     })
 }
 
@@ -72,15 +71,7 @@ export function cortinaMiddleware(config: Config) {
     if (req.hostname.includes('localhost') && skipCookieScriptsInDev) {
       shouldSkipCookieScripts = true
     }
-    return cortina(
-      config.blockApiUrl,
-      config.headers,
-      lang,
-      shouldSkipCookieScripts,
-      config.blocksConfig,
-      redisConfig,
-      redisClient
-    )
+    return cortina(config.blockApiUrl, lang, shouldSkipCookieScripts, config.blocksConfig, redisConfig, redisClient)
       .then(blocks => {
         // @ts-ignore
         res.locals.blocks = blocks
