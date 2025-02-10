@@ -16,7 +16,6 @@ const helloRedis = '<div>Hello redis!</div>'
 const redisResponse = {
   secondaryMenu: helloRedis,
   megaMenu: helloRedis,
-  image: helloRedis,
   footer: helloRedis,
   search: helloRedis,
 }
@@ -71,7 +70,6 @@ describe(`cortina`, () => {
     const result = await cortina(config.blockApiUrl, config.headers, 'en', true, config.blocksConfig)
 
     expect(result.footer).toEqual(helloWorld)
-    expect(result.image).toEqual(helloWorld)
     expect(result.megaMenu).toEqual(helloWorld)
     expect(result.search).toEqual(helloWorld)
     expect(result.secondaryMenu).toEqual(helloWorld)
@@ -100,7 +98,6 @@ describe(`cortina`, () => {
       createRedisClient(false)
     )
     expect(result.footer).toEqual(helloRedis)
-    expect(result.image).toEqual(helloRedis)
     expect(result.megaMenu).toEqual(helloRedis)
     expect(result.search).toEqual(helloRedis)
     expect(result.secondaryMenu).toEqual(helloRedis)
@@ -117,7 +114,6 @@ describe(`cortina`, () => {
       createRedisClient(true)
     )
     expect(result.footer).toEqual(helloWorld)
-    expect(result.image).toEqual(helloWorld)
     expect(result.megaMenu).toEqual(helloWorld)
     expect(result.search).toEqual(helloWorld)
     expect(result.secondaryMenu).toEqual(helloWorld)

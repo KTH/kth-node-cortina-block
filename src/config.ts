@@ -4,7 +4,6 @@ export const supportedLanguages: SupportedLang[] = ['sv', 'en']
 export const defaultBlocksConfig = {
   megaMenu: '1.855134',
   secondaryMenu: '1.865038',
-  image: '1.77257',
   footer: '1.202278',
   search: '1.77262',
   klaroConfig: '1.1137647',

@@ -50,7 +50,6 @@ const blocksConfig = {
 
   - `megaMenu` defaults to `1.855134`.
   - `secondaryMenu` defaults to `1.865038`.
-  - `image` defaults to `1.77257`.
   - `footer` defaults to `1.202278`.
   - `search` defaults to `1.77262`.
   - `language` optional object with language block IDs.
@@ -67,7 +66,6 @@ const blocksConfig = {
 
 megaMenu: "\n\n\n\n  <nav class=\"b…\n     </nav>\n\n  \n\n",
 secondaryMenu: "\n\n\n  <div class=\"blo…   </ul>\n  </div>\n\n\n",
-image: "\n\n\n  <figure class=\"…    \n  </figure>\n\n\n",
 footer: "\n\n\n  <div class=\"blo…  </div>\n  </div>\n\n\n",
 search: "\n\n\n  <div class=\"blo…aded=!0);</script>\n\n\n",
 language: "\n\n\n  <a class=\"block…KTH på svenska</a>\n\n\n",
