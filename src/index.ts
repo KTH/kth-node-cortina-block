@@ -4,7 +4,6 @@ import redis from 'kth-node-redis'
 
 import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
-import { formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
@@ -54,24 +53,6 @@ export function cortina(
     })
 }
 
-//Adjusts URLs to logo, locale link, and app link. Also sets app site name.
-// Returns a modified blocks object.
-export function prepare(blocksIn: BlocksObject, resourceUrl: string, selectors?: { [selectorName: string]: string }) {
-  const defaultSelectors = {
-    logo: '.mainLogo img',
-    localeLink: 'a.block.link[hreflang]',
-  }
-
-  const mergedSelectors = { ...defaultSelectors, ...selectors }
-
-  const blocks = structuredClone(blocksIn)
-
-  for (const key in blocks) {
-    blocks[key] = formatImgSrc(blocks[key], resourceUrl)
-  }
-  return blocks
-}
-
 export function cortinaMiddleware(config: Config) {
   return async (req: Request, res: Response, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
@@ -102,7 +83,7 @@ export function cortinaMiddleware(config: Config) {
     )
       .then(blocks => {
         // @ts-ignore
-        res.locals.blocks = prepare(blocks, config.resourceUrl)
+        res.locals.blocks = blocks
         log.debug('Cortina blocks loaded.')
         next()
       })

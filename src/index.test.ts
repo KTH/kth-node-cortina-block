@@ -47,7 +47,6 @@ const mockFetch = jest.fn()
 
 const config: Config = {
   blockApiUrl: 'http://block-api.cortina/',
-  resourceUrl: 'http://kth.se',
 }
 
 const redisConfig: RedisConfig = {

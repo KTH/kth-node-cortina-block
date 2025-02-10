@@ -25,7 +25,6 @@ server.use(
   '',
   cortinaMiddleware({
     blockApiUrl,
-    resourceUrl,
     blocksConfig,
     redisConfig,
   })
