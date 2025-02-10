@@ -4,7 +4,7 @@ import redis from 'kth-node-redis'
 
 import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
-import { formatSitenameBlock, formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
+import { formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
@@ -63,13 +63,11 @@ export function prepare(
   resourceUrl: string,
   currentPath: string,
   language: SupportedLang,
-  siteName?: { en: string; sv: string },
   localeText?: { en: string; sv: string },
   selectors?: { [selectorName: string]: string }
 ) {
   const defaultSelectors = {
     logo: '.mainLogo img',
-    siteName: '.siteName a',
     localeLink: 'a.block.link[hreflang]',
     secondaryMenuLocale: '.block.links a[hreflang]',
   }
@@ -81,8 +79,6 @@ export function prepare(
   for (const key in blocks) {
     blocks[key] = formatImgSrc(blocks[key], resourceUrl)
   }
-  if (blocks.title && siteName)
-    blocks.title = formatSitenameBlock(blocks.title, mergedSelectors.siteName, siteName[language])
   if (blocks.secondaryMenu && localeText)
     blocks.secondaryMenu = formatLocaleLinkBlock(
       blocks.secondaryMenu,
@@ -134,14 +130,7 @@ export function cortinaMiddleware(config: Config) {
     )
       .then(blocks => {
         // @ts-ignore
-        res.locals.blocks = prepare(
-          blocks,
-          config.resourceUrl,
-          req.originalUrl,
-          lang,
-          config.siteName,
-          config.localeText
-        )
+        res.locals.blocks = prepare(blocks, config.resourceUrl, req.originalUrl, lang, config.localeText)
         log.debug('Cortina blocks loaded.')
         next()
       })

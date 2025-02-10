@@ -14,7 +14,6 @@ log.init({ name: 'unit test', env: 'production' })
 const helloWorld = '<div>Hello world!</div>'
 const helloRedis = '<div>Hello redis!</div>'
 const redisResponse = {
-  title: helloRedis,
   secondaryMenu: helloRedis,
   megaMenu: helloRedis,
   image: helloRedis,
@@ -76,7 +75,6 @@ describe(`cortina`, () => {
     expect(result.megaMenu).toEqual(helloWorld)
     expect(result.search).toEqual(helloWorld)
     expect(result.secondaryMenu).toEqual(helloWorld)
-    expect(result.title).toEqual(helloWorld)
   })
 
   test('should thow internal server error and return empty object', async () => {
@@ -106,7 +104,6 @@ describe(`cortina`, () => {
     expect(result.megaMenu).toEqual(helloRedis)
     expect(result.search).toEqual(helloRedis)
     expect(result.secondaryMenu).toEqual(helloRedis)
-    expect(result.title).toEqual(helloRedis)
   })
 
   test('fetch blocks from api if redis fails', async () => {
@@ -124,7 +121,6 @@ describe(`cortina`, () => {
     expect(result.megaMenu).toEqual(helloWorld)
     expect(result.search).toEqual(helloWorld)
     expect(result.secondaryMenu).toEqual(helloWorld)
-    expect(result.title).toEqual(helloWorld)
   })
   describe(`styleVersion`, () => {
     const mockReq = { query: {}, hostname: '' } as any
@@ -133,41 +129,37 @@ describe(`cortina`, () => {
     test('fetch "view style10" for styleVersion 10', async () => {
       const middleware = await cortinaMiddleware({
         blockApiUrl: config.blockApiUrl,
-        siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         useStyle10: true,
       })
       await middleware(mockReq, mockRes, mockNext)
-      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style10', expect.anything())
+      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.855134?l=sv&v=style10', expect.anything())
     })
     test('fetch "view style9" for styleVersion 9', async () => {
       const middleware = await cortinaMiddleware({
         blockApiUrl: config.blockApiUrl,
-        siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         useStyle10: false,
       })
       await middleware(mockReq, mockRes, mockNext)
-      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
+      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.855134?l=sv&v=style9', expect.anything())
     })
     test('fetch "view style9" when styleVersion is missing', async () => {
       const middleware = await cortinaMiddleware({
         blockApiUrl: config.blockApiUrl,
-        siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         useStyle10: undefined,
       })
       await middleware(mockReq, mockRes, mockNext)
-      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.260060?l=sv&v=style9', expect.anything())
+      expect(mockFetch).toBeCalledWith('http://block-api.cortina/1.855134?l=sv&v=style9', expect.anything())
     })
 
     test('use redis key with "_style10" for styleVersion 10', async () => {
       const middleware = await cortinaMiddleware({
         blockApiUrl: config.blockApiUrl,
-        siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         redisConfig,
@@ -181,7 +173,6 @@ describe(`cortina`, () => {
     test('use redis key with "_style9" for styleVersion 9', async () => {
       const middleware = await cortinaMiddleware({
         blockApiUrl: config.blockApiUrl,
-        siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         redisConfig,
@@ -195,7 +186,6 @@ describe(`cortina`, () => {
     test('use redis key with "_style9"  when styleVersion is missing', async () => {
       const middleware = await cortinaMiddleware({
         blockApiUrl: config.blockApiUrl,
-        siteName: { en: 'Webpage', sv: 'Websida' },
         localeText: { en: 'English page', sv: 'Svensk sida' },
         resourceUrl: 'https://www.kth.se',
         redisConfig,

@@ -25,7 +25,6 @@ server.use(
   '',
   cortinaMiddleware({
     blockApiUrl,
-    siteName,
     localeText,
     resourceUrl,
     blocksConfig,
@@ -49,7 +48,6 @@ const blocksConfig = {
 - `blocks` is optional. It's a plain object containing Cortina block IDs. The
   following IDs are default and can be overridden.
 
-  - `title` defaults to `1.260060`.
   - `megaMenu` defaults to `1.855134`.
   - `secondaryMenu` defaults to `1.865038`.
   - `image` defaults to `1.77257`.
@@ -67,7 +65,6 @@ const blocksConfig = {
 
 ```json
 
-title: "\n\n\n  <h1 class=\"bloc…logy</a>\n  </h1>\n\n\n",
 megaMenu: "\n\n\n\n  <nav class=\"b…\n     </nav>\n\n  \n\n",
 secondaryMenu: "\n\n\n  <div class=\"blo…   </ul>\n  </div>\n\n\n",
 image: "\n\n\n  <figure class=\"…    \n  </figure>\n\n\n",

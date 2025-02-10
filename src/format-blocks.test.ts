@@ -1,4 +1,4 @@
-import { formatImgSrc, formatSitenameBlock, formatLocaleLinkBlock } from './format-blocks'
+import { formatImgSrc, formatLocaleLinkBlock } from './format-blocks'
 import jsdom from 'jsdom'
 
 describe('formatImgSrc', () => {
@@ -30,22 +30,6 @@ it('should not format a block containing script tags', () => {
   `
   const notModifiedHtmlString = formatImgSrc(htmlString, '')
   expect(notModifiedHtmlString).toEqual(htmlString)
-})
-
-describe('formatSitenameBlock', () => {
-  it('should replace the text content of the selected siteBlock element with provided sitename', () => {
-    const htmlString = '<html><body><div id="sitename">Old Text</div></body></html>'
-    const selector = '#sitename'
-    const sitename = 'New Sitename'
-
-    const formattedHtml = formatSitenameBlock(htmlString, selector, sitename)
-
-    const { window } = new jsdom.JSDOM(formattedHtml)
-    const document = window.document
-    const sitenameElement = document.querySelector(selector) as Element
-
-    expect(sitenameElement.textContent).toBe(sitename)
-  })
 })
 
 describe('formatLocaleLinkBlock', () => {

@@ -1,7 +1,6 @@
 export type Config = {
   blockApiUrl: string
   headers?: Headers
-  siteName?: { en: string; sv: string }
   localeText?: { en: string; sv: string }
   resourceUrl: string
   blocksConfig?: BlocksConfig

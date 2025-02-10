@@ -16,15 +16,6 @@ export const formatImgSrc = (htmlString: string, baseUrl: string) => {
   return modifiedHtmlString
 }
 
-export const formatSitenameBlock = (htmlString: string, selector: string, sitename: string) => {
-  const { window } = new jsdom.JSDOM(htmlString)
-  const document = window.document
-  const sitenameLink = document.querySelector(selector)
-  if (sitenameLink) sitenameLink.textContent = sitename
-  const modifiedHtmlString = document.body.innerHTML
-  return modifiedHtmlString
-}
-
 export const formatLocaleLinkBlock = (
   htmlString: string,
   selector: string,
