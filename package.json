@@ -42,7 +42,7 @@
     "@kth/log": "^4.0.5"
   },
   "devDependencies": {
-    "@types/node": "^20.17.17",
+    "@types/node": "^22.13.1",
     "eslint": "^8.57.1",
     "@kth/eslint-config-kth": "^3.6.0",
     "@types/express": "^5.0.0",
