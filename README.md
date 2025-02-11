@@ -55,6 +55,7 @@ const blocksConfig = {
   - `matomoAnalytics` defaults to `1.714097`.
 
 - `redisConfig` is optional. An object parsed from `kth-node-configuration`, containing `host` and `port`. If provided, blocks will be cached in redis.
+- `redisKey` is optional. Use unique keys of multiple apps share the same redis.
 
 ### Returned blocks
 

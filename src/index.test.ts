@@ -19,26 +19,26 @@ const redisResponse = {
   search: helloRedis,
 }
 
-const createRedisClient = (shouldFail: boolean) => {
+const createRedisClient = (options: { shouldFail: boolean; shouldReturn?: boolean }) => {
+  const { shouldFail, shouldReturn = true } = options
   const error = new Error('Connection refused')
+
   return {
-    hgetallAsync(key: string) {
+    hgetallAsync: jest.fn((key: string) => {
+      if (shouldFail) return Promise.reject(error)
+
+      if (shouldReturn === false) return Promise.resolve(undefined)
+
+      return Promise.resolve(redisResponse)
+    }),
+
+    hmsetAsync: jest.fn((key: string, value: string) => {
       if (shouldFail) return Promise.reject(error)
 
       return Promise.resolve(redisResponse)
-    },
+    }),
 
-    hmsetAsync(key: string, value: string) {
-      if (shouldFail) return Promise.reject(error)
-
-      return Promise.resolve(redisResponse)
-    },
-
-    expireAsync(value: string) {
-      if (shouldFail) return Promise.reject(error)
-
-      return Promise.resolve(redisResponse)
-    },
+    expireAsync: jest.fn(),
   }
 }
 const mockFetch = jest.fn()
@@ -95,7 +95,7 @@ describe(`cortina`, () => {
       language: 'en',
       shouldSkipCookieScripts: true,
       blocksConfig: config.blocksConfig,
-      redisClient: createRedisClient(false),
+      redisClient: createRedisClient({ shouldFail: false }),
     })
     expect(result.footer).toEqual(helloRedis)
     expect(result.megaMenu).toEqual(helloRedis)
@@ -108,10 +108,25 @@ describe(`cortina`, () => {
       language: 'en',
       shouldSkipCookieScripts: true,
       blocksConfig: config.blocksConfig,
-      redisClient: createRedisClient(true),
+      redisClient: createRedisClient({ shouldFail: true }),
     })
     expect(result.footer).toEqual(helloWorld)
     expect(result.megaMenu).toEqual(helloWorld)
     expect(result.search).toEqual(helloWorld)
+  })
+
+  test('use custom redis key if provided', async () => {
+    const redisClient = createRedisClient({ shouldFail: false, shouldReturn: false })
+    const redisKey = 'CustomRedisKey_'
+    const result = await cortina({
+      blockApiUrl: config.blockApiUrl,
+      language: 'en',
+      shouldSkipCookieScripts: true,
+      blocksConfig: config.blocksConfig,
+      redisClient,
+      redisKey,
+    })
+    expect(redisClient.hgetallAsync).toBeCalledWith('CustomRedisKey_en')
+    expect(redisClient.hmsetAsync).toBeCalledWith('CustomRedisKey_en', expect.anything())
   })
 })

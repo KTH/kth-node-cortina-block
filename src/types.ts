@@ -2,6 +2,7 @@ export type Config = {
   blockApiUrl: string
   blocksConfig?: BlocksConfig
   redisConfig?: RedisConfig
+  redisKey?: string
   skipCookieScriptsInDev?: boolean
 }
 

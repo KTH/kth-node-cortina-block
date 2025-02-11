@@ -13,6 +13,6 @@ export const devBlocks = {
   matomoAnalytics: '1.714097',
 }
 export const redisItemSettings = {
-  redisKey: 'CortinaBlock_',
+  defaultKey: 'CortinaBlock_',
   redisExpire: 600,
 }

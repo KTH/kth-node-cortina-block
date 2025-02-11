@@ -15,10 +15,11 @@ export function cortina(options: {
   shouldSkipCookieScripts: boolean
   blocksConfig?: BlocksConfig
   redisClient?: Redis
+  redisKey?: string
 }): Promise<{
   [blockName: string]: string
 }> {
-  const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient } = options
+  const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient, redisKey } = options
 
   const fullBlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
@@ -32,19 +33,20 @@ export function cortina(options: {
     return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
   }
 
-  const { redisKey, redisExpire } = redisItemSettings
+  const { defaultKey, redisExpire } = redisItemSettings
+  const finalRedisKey = redisKey || defaultKey
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using redisKey. If Redis connection fails, call API
   // directly and don't cache results.
-  return getRedisItem<BlocksObject>(redisClient, redisKey, language)
+  return getRedisItem<BlocksObject>(redisClient, finalRedisKey, language)
     .then(storedBlocks => {
       if (storedBlocks) {
         return storedBlocks
       }
 
       return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language).then(cortinaBlocks =>
-        setRedisItem(redisClient, redisKey, redisExpire, language, cortinaBlocks)
+        setRedisItem(redisClient, finalRedisKey, redisExpire, language, cortinaBlocks)
       )
     })
     .catch(err => {
@@ -60,7 +62,7 @@ export function cortinaMiddleware(config: Config) {
       next()
       return
     }
-    const { redisConfig, skipCookieScriptsInDev = true } = config
+    const { redisConfig, redisKey, skipCookieScriptsInDev = true } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
       redisClient = await redis('cortina', redisConfig)
@@ -79,6 +81,7 @@ export function cortinaMiddleware(config: Config) {
       shouldSkipCookieScripts,
       blocksConfig,
       redisClient,
+      redisKey,
     })
       .then(blocks => {
         // @ts-ignore
