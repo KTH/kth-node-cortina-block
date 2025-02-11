@@ -1,6 +1,7 @@
 import log from '@kth/log'
-import { cortina } from './index'
-import { Config, Redis } from './types'
+import { cortina, cortinaMiddleware } from './index'
+import { Config, ExtendedResponse, Redis, SupportedLang } from './types'
+import { NextFunction, Request } from 'express'
 
 const mockRedisClient = {
   hgetallAsync: jest.fn().mockResolvedValue(false),
@@ -45,7 +46,7 @@ const mockFetch = jest.fn()
 
 ;(global.fetch as jest.Mock) = mockFetch
 
-const config: Config = {
+const sampleConfig: Config = {
   blockApiUrl: 'http://block-api.cortina/',
 }
 
@@ -61,10 +62,10 @@ describe(`cortina`, () => {
 
   test('get all blocks from block-api', async () => {
     const result = await cortina({
-      blockApiUrl: config.blockApiUrl,
+      blockApiUrl: sampleConfig.blockApiUrl,
       language: 'en',
       shouldSkipCookieScripts: true,
-      blocksConfig: config.blocksConfig,
+      blocksConfig: sampleConfig.blocksConfig,
     })
 
     expect(result.footer).toEqual(helloWorld)
@@ -78,10 +79,10 @@ describe(`cortina`, () => {
     let result
     try {
       result = await cortina({
-        blockApiUrl: config.blockApiUrl,
+        blockApiUrl: sampleConfig.blockApiUrl,
         language: 'en',
         shouldSkipCookieScripts: true,
-        blocksConfig: config.blocksConfig,
+        blocksConfig: sampleConfig.blocksConfig,
       })
     } catch (error) {
       expect(cortina).toThrow('Internal server error')
@@ -91,10 +92,10 @@ describe(`cortina`, () => {
 
   test('get blocks from redis cache', async () => {
     const result = await cortina({
-      blockApiUrl: config.blockApiUrl,
+      blockApiUrl: sampleConfig.blockApiUrl,
       language: 'en',
       shouldSkipCookieScripts: true,
-      blocksConfig: config.blocksConfig,
+      blocksConfig: sampleConfig.blocksConfig,
       redisClient: createRedisClient({ shouldFail: false }),
     })
     expect(result.footer).toEqual(helloRedis)
@@ -104,10 +105,10 @@ describe(`cortina`, () => {
 
   test('fetch blocks from api if redis fails', async () => {
     const result = await cortina({
-      blockApiUrl: config.blockApiUrl,
+      blockApiUrl: sampleConfig.blockApiUrl,
       language: 'en',
       shouldSkipCookieScripts: true,
-      blocksConfig: config.blocksConfig,
+      blocksConfig: sampleConfig.blocksConfig,
       redisClient: createRedisClient({ shouldFail: true }),
     })
     expect(result.footer).toEqual(helloWorld)
@@ -119,14 +120,39 @@ describe(`cortina`, () => {
     const redisClient = createRedisClient({ shouldFail: false, shouldReturn: false })
     const redisKey = 'CustomRedisKey_'
     const result = await cortina({
-      blockApiUrl: config.blockApiUrl,
+      blockApiUrl: sampleConfig.blockApiUrl,
       language: 'en',
       shouldSkipCookieScripts: true,
-      blocksConfig: config.blocksConfig,
+      blocksConfig: sampleConfig.blocksConfig,
       redisClient,
       redisKey,
     })
-    expect(redisClient.hgetallAsync).toBeCalledWith('CustomRedisKey_en')
-    expect(redisClient.hmsetAsync).toBeCalledWith('CustomRedisKey_en', expect.anything())
+    expect(redisClient.hgetallAsync).toHaveBeenCalledWith('CustomRedisKey_en')
+    expect(redisClient.hmsetAsync).toHaveBeenCalledWith('CustomRedisKey_en', expect.anything())
+  })
+})
+
+describe(`cortinaMiddleware`, () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockFetch.mockResolvedValue({
+      text: () => Promise.resolve(helloWorld),
+      ok: true,
+    })
+  })
+  afterAll(() => jest.resetAllMocks())
+
+  test('enforce specific langage if "supportedLanguages" is provided', async () => {
+    const supportedLanguages: SupportedLang[] = ['sv']
+    const config = { ...sampleConfig, supportedLanguages }
+    const myMiddleware = cortinaMiddleware(config)
+
+    const req = { query: {}, hostname: '' } as Request
+    const res = { locals: { locale: { language: 'en' } } } as ExtendedResponse
+    const next = jest.fn() as NextFunction
+
+    await myMiddleware(req, res, next)
+
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('?l=sv'))
   })
 })

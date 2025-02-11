@@ -56,6 +56,7 @@ const blocksConfig = {
 
 - `redisConfig` is optional. An object parsed from `kth-node-configuration`, containing `host` and `port`. If provided, blocks will be cached in redis.
 - `redisKey` is optional. Use unique keys of multiple apps share the same redis.
+- `supportedLanguages` is optional. Limit what languages should be allowed. Default is `['sv', 'en']`.
 
 ### Returned blocks
 

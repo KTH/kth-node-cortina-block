@@ -1,6 +1,6 @@
 import { SupportedLang } from '.'
 
-export const supportedLanguages: SupportedLang[] = ['sv', 'en']
+export const defaultSupportedLanguages: SupportedLang[] = ['sv', 'en']
 export const defaultBlocksConfig = {
   megaMenu: '1.855134',
   footer: '1.202278',

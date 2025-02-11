@@ -2,10 +2,10 @@ import { NextFunction, Request } from 'express'
 import log from '@kth/log'
 import redis from 'kth-node-redis'
 
-import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
+import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis, ExtendedResponse } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { fetchAllBlocks } from './fetch-blocks'
-import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
+import { defaultBlocksConfig, defaultSupportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
 
 // Gets HTML blocks from Cortina using promises.
@@ -55,21 +55,33 @@ export function cortina(options: {
     })
 }
 
+const getLanguage = (res: ExtendedResponse, supportedLanguages?) => {
+  let detectedLanguage = (res.locals?.locale?.language as SupportedLang) ?? 'sv'
+
+  const finalSupportedLanguages = supportedLanguages || defaultSupportedLanguages
+
+  if (!finalSupportedLanguages.includes(detectedLanguage)) {
+    return finalSupportedLanguages[0]
+  }
+
+  return detectedLanguage
+}
+
 export function cortinaMiddleware(config: Config) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: ExtendedResponse, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
     if (/^\/static\/.*/.test(req.url) || req.query.nocortinablocks !== undefined) {
       next()
       return
     }
-    const { redisConfig, redisKey, skipCookieScriptsInDev = true } = config
+    const { redisConfig, redisKey, skipCookieScriptsInDev = true, supportedLanguages } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
       redisClient = await redis('cortina', redisConfig)
     }
-    // @ts-ignore
-    let language = (res.locals.locale?.language as SupportedLang) ?? 'sv'
-    if (!supportedLanguages.includes(language)) [language] = supportedLanguages
+
+    const language = getLanguage(res, supportedLanguages)
+
     let shouldSkipCookieScripts = false
     if (req.hostname.includes('localhost') && skipCookieScriptsInDev) {
       shouldSkipCookieScripts = true
