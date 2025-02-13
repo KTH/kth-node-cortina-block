@@ -1,9 +1,8 @@
 # @kth/cortina-block
 
-This package exports:
-
-- cortinaMiddleware - Express middleware to fectch cortina blocks and store them in res.locals.blocks (optional resis cache)
-- cortina - function that fetches cortina blocks (optional redis cache). Used by cortinaMiddleware.
+This package exposes an express middleware, that fetches som predefined blocks from Cortina CMS.  
+The blocks are then stored in `res.locals.blocks`, for use in Handlebars or similar.  
+Blocks can optionaly be cached in Redis.
 
 ## Installation
 
@@ -37,7 +36,7 @@ Default blocks that will be fetched can be found in config.ts. If you want to fe
 - `blockApiUrl` is required. Should point to the Cortina block API endpoint.
 - `redisConfig` is optional. An object parsed from `kth-node-configuration`, containing `host` and `port`. If provided, blocks will be cached in redis.
 - `redisKey` is optional. Use unique keys of multiple apps share the same redis.
-- `supportedLanguages` is optional. Limit what languages should be allowed. Default is `['sv', 'en']`.
+- `supportedLanguages` is optional. If app only uses a subset of the supported languages. Default is `['sv', 'en']`.
 - `blocksConfig` is optional. It's a plain object containing Cortina block IDs. It can be used both to replace existing id's, and to add new blocks.
   ```typescript
   const blocksConfig = {
@@ -48,7 +47,7 @@ Default blocks that will be fetched can be found in config.ts. If you want to fe
 
 ## Changes after style 10
 
-Blocks **title**, **image** and **secondaryMenu** is no longer used by the apps.  
+Blocks **title**, **image** and **secondaryMenu** are no longer used by the apps.  
 That also means that a bunch of config is no longer needed.
 
 ## Upgrade from @kth/cortina-block 6
