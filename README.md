@@ -1,9 +1,8 @@
 # @kth/cortina-block
 
-This package exports:
-
-- cortinaMiddleware - Express middleware to fectch cortina blocks and store them in res.locals.blocks (optional resis cache)
-- cortina - function that fetches cortina blocks (optional redis cache). Used by cortinaMiddleware.
+This package exposes an express middleware, that fetches som predefined blocks from Cortina CMS.  
+The blocks are then stored in `res.locals.blocks`, for use in Handlebars or similar.  
+Blocks can optionaly be cached in Redis.
 
 ## Installation
 
