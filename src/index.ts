@@ -21,6 +21,7 @@ export function cortina(options: {
   [blockName: string]: string
 }> {
   const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient, redisKey } = options
+  const { memCache } = options
 
   const fullBlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
