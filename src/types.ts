@@ -1,13 +1,10 @@
 export type Config = {
   blockApiUrl: string
-  headers?: Headers
-  siteName?: { en: string; sv: string }
-  localeText?: { en: string; sv: string }
-  resourceUrl: string
   blocksConfig?: BlocksConfig
   redisConfig?: RedisConfig
+  redisKey?: string
   skipCookieScriptsInDev?: boolean
-  useStyle10?: boolean
+  supportedLanguages?: SupportedLang[]
 }
 
 export type RedisConfig = {
@@ -25,3 +22,5 @@ export type Redis = {
 }
 
 export type SupportedLang = 'sv' | 'en'
+
+export type ExtendedResponse = Response & { locals?: { locale: { language: SupportedLang } } }
