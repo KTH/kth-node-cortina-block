@@ -2,146 +2,102 @@ import { NextFunction, Request } from 'express'
 import log from '@kth/log'
 import redis from 'kth-node-redis'
 
-import { Config, RedisConfig, SupportedLang, BlocksObject, BlocksConfig, Redis } from './types'
+import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis, ExtendedResponse } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
-import { formatSitenameBlock, formatLocaleLinkBlock, formatImgSrc } from './format-blocks'
 import { fetchAllBlocks } from './fetch-blocks'
-import { defaultBlocksConfig, supportedLanguages, redisItemSettings, devBlocks } from './config'
+import { defaultBlocksConfig, defaultSupportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
 
 // Gets HTML blocks from Cortina using promises.
-export function cortina(
-  blockApiUrl: string,
-  headers: Headers | undefined,
-  language: SupportedLang,
-  shouldSkipCookieScripts: boolean,
-  blocksConfigIn?: BlocksConfig,
-  redisConfig?: RedisConfig,
-  redisClient?: Redis,
-  useStyle10?: boolean
-): Promise<{
+export function cortina(options: {
+  blockApiUrl: string
+  language: SupportedLang
+  shouldSkipCookieScripts: boolean
+  blocksConfig?: BlocksConfig
+  redisClient?: Redis
+  redisKey?: string
+}): Promise<{
   [blockName: string]: string
 }> {
-  const blocksConfig = { ...defaultBlocksConfig, ...blocksConfigIn }
+  const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient, redisKey } = options
+
+  const fullBlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
-    blocksConfig.klaroConfig = devBlocks.klaroConfig
-    blocksConfig.matomoAnalytics = devBlocks.matomoAnalytics
+    fullBlocksConfig.klaroConfig = devBlocks.klaroConfig
+    fullBlocksConfig.matomoAnalytics = devBlocks.matomoAnalytics
   }
   if (!blockApiUrl) {
     throw new Error('Block api url must be specified.')
   }
-  if (!redisConfig || !redisClient) {
-    return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers, useStyle10)
+  if (!redisClient) {
+    return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
   }
 
-  const { redisKey: redisKeyBase, redisExpire } = redisItemSettings
-  const redisKey = redisKeyBase + (useStyle10 ? 'style10_' : 'style9_')
+  const { defaultKey, redisExpire } = redisItemSettings
+  const finalRedisKey = redisKey || defaultKey
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using redisKey. If Redis connection fails, call API
   // directly and don't cache results.
-  return getRedisItem<BlocksObject>(redisClient, redisKey, language)
+  return getRedisItem<BlocksObject>(redisClient, finalRedisKey, language)
     .then(storedBlocks => {
       if (storedBlocks) {
         return storedBlocks
       }
 
-      return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers, useStyle10).then(cortinaBlocks =>
-        setRedisItem(redisClient, redisKey, redisExpire, language, cortinaBlocks)
+      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language).then(cortinaBlocks =>
+        setRedisItem(redisClient, finalRedisKey, redisExpire, language, cortinaBlocks)
       )
     })
     .catch(err => {
       log.error('Redis failed:', err.message, err.code)
-      return fetchAllBlocks(blocksConfig, blockApiUrl, language, headers, useStyle10)
+      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
     })
 }
 
-//Adjusts URLs to logo, locale link, and app link. Also sets app site name.
-// Returns a modified blocks object.
-export function prepare(
-  blocksIn: BlocksObject,
-  resourceUrl: string,
-  currentPath: string,
-  language: SupportedLang,
-  siteName?: { en: string; sv: string },
-  localeText?: { en: string; sv: string },
-  selectors?: { [selectorName: string]: string }
-) {
-  const defaultSelectors = {
-    logo: '.mainLogo img',
-    siteName: '.siteName a',
-    localeLink: 'a.block.link[hreflang]',
-    secondaryMenuLocale: '.block.links a[hreflang]',
+const getLanguage = (res: ExtendedResponse, supportedLanguages?) => {
+  let detectedLanguage = (res.locals?.locale?.language as SupportedLang) ?? 'sv'
+
+  const finalSupportedLanguages = supportedLanguages || defaultSupportedLanguages
+
+  if (!finalSupportedLanguages.includes(detectedLanguage)) {
+    return finalSupportedLanguages[0]
   }
 
-  const mergedSelectors = { ...defaultSelectors, ...selectors }
-
-  const blocks = structuredClone(blocksIn)
-
-  for (const key in blocks) {
-    blocks[key] = formatImgSrc(blocks[key], resourceUrl)
-  }
-  if (blocks.title && siteName)
-    blocks.title = formatSitenameBlock(blocks.title, mergedSelectors.siteName, siteName[language])
-  if (blocks.secondaryMenu && localeText)
-    blocks.secondaryMenu = formatLocaleLinkBlock(
-      blocks.secondaryMenu,
-      mergedSelectors.secondaryMenuLocale,
-      localeText[language === 'sv' ? 'en' : 'sv'],
-      `${resourceUrl}${currentPath}`,
-      language
-    )
-  if (blocks.intra_secondaryMenu && localeText) {
-    blocks.intra_secondaryMenu = formatLocaleLinkBlock(
-      blocks.intra_secondaryMenu,
-      mergedSelectors.secondaryMenuLocale,
-      localeText[language === 'sv' ? 'en' : 'sv'],
-      `https://intra.kth.se${currentPath}`,
-      language
-    )
-  }
-  return blocks
+  return detectedLanguage
 }
 
 export function cortinaMiddleware(config: Config) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: ExtendedResponse, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
     if (/^\/static\/.*/.test(req.url) || req.query.nocortinablocks !== undefined) {
       next()
       return
     }
-    const { redisConfig, skipCookieScriptsInDev = true } = config
+    const { redisConfig, redisKey, skipCookieScriptsInDev = true, supportedLanguages } = config
     let redisClient: Redis | undefined
     if (redisConfig) {
       redisClient = await redis('cortina', redisConfig)
     }
-    // @ts-ignore
-    let lang = (res.locals.locale?.language as SupportedLang) ?? 'sv'
-    if (!supportedLanguages.includes(lang)) [lang] = supportedLanguages
+
+    const language = getLanguage(res, supportedLanguages)
+
     let shouldSkipCookieScripts = false
     if (req.hostname.includes('localhost') && skipCookieScriptsInDev) {
       shouldSkipCookieScripts = true
     }
-    return cortina(
-      config.blockApiUrl,
-      config.headers,
-      lang,
+    const { blockApiUrl, blocksConfig } = config
+    return cortina({
+      blockApiUrl,
+      language,
       shouldSkipCookieScripts,
-      config.blocksConfig,
-      redisConfig,
+      blocksConfig,
       redisClient,
-      config.useStyle10
-    )
+      redisKey,
+    })
       .then(blocks => {
         // @ts-ignore
-        res.locals.blocks = prepare(
-          blocks,
-          config.resourceUrl,
-          req.originalUrl,
-          lang,
-          config.siteName,
-          config.localeText
-        )
+        res.locals.blocks = blocks
         log.debug('Cortina blocks loaded.')
         next()
       })
