@@ -34,11 +34,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@kth/log": "^4.0.5",
+    "@kth/log": "^4.0.7",
     "kth-node-redis": "^3.3.0"
-  },
-  "peerDependencies": {
-    "@kth/log": "^4.0.5"
   },
   "devDependencies": {
     "@kth/eslint-config-kth": "^3.6.0",
