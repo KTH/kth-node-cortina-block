@@ -2,6 +2,25 @@
 
 All notable changes for major version updates will be documented here.
 
+## 7.0.0
+
+Cleaning upp Kth Style < 9.
+A lot of changes, but should not have a big effect on apps that are already up to date.
+See [Readme](./README.md#changes-after-style-10) for more details.
+
+### Removed
+
+- **Breaking:** Blocks that should no longer be used.
+- **Breaking:** Config related to removed blocks.
+
+### Changed
+
+- **Breaking:** Names of some config parameters, if upgrading directly from v5 or `@kth/kth-node-web-common`.
+
+### Added
+
+- Some config parameters that existed in v5 but never was included in v6.
+
 ## 6.2.0
 
 Accepts a parameter `useStyle10` that serves blocks tailored to the new version of KTH-Style.  
