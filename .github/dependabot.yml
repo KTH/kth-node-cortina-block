@@ -17,3 +17,5 @@ updates:
     ignore:
       - dependency-name: 'eslint'
         versions: ['9.x']
+      - dependency-name: 'express'
+        versions: ['5']
