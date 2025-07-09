@@ -24,4 +24,6 @@ export type Redis = {
 
 export type SupportedLang = 'sv' | 'en'
 
-export type ExtendedResponse = Response & { locals?: { locale: { language: SupportedLang } } }
+export type ExtendedResponse = Response & {
+  locals?: { locale: { language: SupportedLang }; blocks?: { [key: string]: string } }
+}

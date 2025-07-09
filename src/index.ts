@@ -9,7 +9,7 @@ import { defaultBlocksConfig, defaultSupportedLanguages, redisItemSettings, devB
 export * from './types'
 
 // Gets HTML blocks from Cortina using promises.
-export function cortina(options: {
+function cortina(options: {
   blockApiUrl: string
   language: SupportedLang
   shouldSkipCookieScripts: boolean
