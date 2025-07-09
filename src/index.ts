@@ -2,7 +2,7 @@ import { NextFunction, Request } from 'express'
 import log from '@kth/log'
 import redis from 'kth-node-redis'
 
-import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis, ExtendedResponse } from './types'
+import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis, ExtendedResponse, RedisConfig } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, defaultSupportedLanguages, redisItemSettings, devBlocks } from './config'
@@ -14,12 +14,12 @@ export function cortina(options: {
   language: SupportedLang
   shouldSkipCookieScripts: boolean
   blocksConfig?: BlocksConfig
-  redisClient?: Redis
+  redisConfig?: RedisConfig
   redisKey?: string
 }): Promise<{
   [blockName: string]: string
 }> {
-  const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient, redisKey } = options
+  const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisConfig, redisKey } = options
 
   const fullBlocksConfig: BlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
@@ -30,14 +30,14 @@ export function cortina(options: {
   if (!blockApiUrl) {
     throw new Error('Block api url must be specified.')
   }
-  if (redisClient) {
-    return fetchWithRedis(redisClient, blockApiUrl, language, fullBlocksConfig, redisKey)
+  if (redisConfig) {
+    return fetchWithRedis(redisConfig, blockApiUrl, language, fullBlocksConfig, redisKey)
   }
   return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
 }
 
 const fetchWithRedis = async (
-  redisClient: Redis,
+  redisConfig: RedisConfig,
   blockApiUrl: string,
   language: SupportedLang,
   fullBlocksConfig: BlocksConfig,
@@ -45,6 +45,8 @@ const fetchWithRedis = async (
 ) => {
   const { defaultKey, redisExpire } = redisItemSettings
   const finalRedisKey = redisKey || defaultKey
+
+  const redisClient: Redis = await redis('cortina', redisConfig)
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using redisKey. If Redis connection fails, call API
@@ -100,10 +102,6 @@ export function cortinaMiddleware(config: Config) {
       return
     }
     const { redisConfig, redisKey, skipCookieScriptsInDev = true, supportedLanguages } = config
-    let redisClient: Redis | undefined
-    if (redisConfig) {
-      redisClient = await redis('cortina', redisConfig)
-    }
 
     const language = getLanguage(res, supportedLanguages)
 
@@ -117,7 +115,7 @@ export function cortinaMiddleware(config: Config) {
       language,
       shouldSkipCookieScripts,
       blocksConfig,
-      redisClient,
+      redisConfig,
       redisKey,
     })
       .then(blocks => {
