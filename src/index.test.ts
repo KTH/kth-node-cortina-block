@@ -1,4 +1,3 @@
-import log from '@kth/log'
 import { cortina, cortinaMiddleware } from './index'
 import { Config, ExtendedResponse, Redis, SupportedLang } from './types'
 import { NextFunction, Request } from 'express'
@@ -10,7 +9,7 @@ const mockRedisClient = {
 } as Redis
 jest.mock('kth-node-redis', () => () => mockRedisClient)
 
-log.init({ name: 'unit test', env: 'production' })
+jest.mock('@kth/log')
 
 const helloWorld = '<div>Hello world!</div>'
 const helloRedis = '<div>Hello redis!</div>'
@@ -119,7 +118,7 @@ describe(`cortina`, () => {
   test('use custom redis key if provided', async () => {
     const redisClient = createRedisClient({ shouldFail: false, shouldReturn: false })
     const redisKey = 'CustomRedisKey_'
-    const result = await cortina({
+    await cortina({
       blockApiUrl: sampleConfig.blockApiUrl,
       language: 'en',
       shouldSkipCookieScripts: true,
@@ -142,7 +141,7 @@ describe(`cortinaMiddleware`, () => {
   })
   afterAll(() => jest.resetAllMocks())
 
-  test('enforce specific langage if "supportedLanguages" is provided', async () => {
+  test('ignore request language and use a supported language if "supportedLanguages" is provided', async () => {
     const supportedLanguages: SupportedLang[] = ['sv']
     const config = { ...sampleConfig, supportedLanguages }
     const myMiddleware = cortinaMiddleware(config)
@@ -154,5 +153,28 @@ describe(`cortinaMiddleware`, () => {
     await myMiddleware(req, res, next)
 
     expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('?l=sv'))
+  })
+  describe(`config`, () => {
+    it('throws if "redisConfig" is passed when "memoryCache" is true', () => {
+      const config = { ...sampleConfig, redisConfig: { host: 'redis', port: 123 }, memoryCache: true }
+
+      const initMiddleware = () => cortinaMiddleware(config)
+
+      expect(initMiddleware).toThrow()
+    })
+    it('throws if redisKey is passed without "redisConfig"', () => {
+      const config = { ...sampleConfig, redisConfig: undefined, redisKey: 'custom_key' }
+
+      const initMiddleware = () => cortinaMiddleware(config)
+
+      expect(initMiddleware).toThrow()
+    })
+    it('dows not throw when config is valid', () => {
+      const config = { ...sampleConfig }
+
+      const myMiddleware = cortinaMiddleware(config)
+
+      expect(typeof myMiddleware).toBe('function')
+    })
   })
 })

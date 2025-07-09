@@ -67,7 +67,22 @@ const getLanguage = (res: ExtendedResponse, supportedLanguages?) => {
   return detectedLanguage
 }
 
+const validateConfig = (config: Config) => {
+  if (config.memoryCache && config.redisConfig) {
+    const errorMessage = '@kth/cortina-block config "memoryCache" and "redisConfig" are not valid at the same time'
+    log.error(errorMessage)
+    throw new Error(errorMessage)
+  }
+
+  if (config.redisKey && !config.redisConfig) {
+    const errorMessage = '@kth/cortina-block config "redisKey" is not allowed without "redisConfig"'
+    log.error(errorMessage)
+    throw new Error(errorMessage)
+  }
+}
+
 export function cortinaMiddleware(config: Config) {
+  validateConfig(config)
   return async (req: Request, res: ExtendedResponse, next: NextFunction) => {
     // don't load cortina blocks for static content, or if query parameter 'nocortinablocks' is present
     if (/^\/static\/.*/.test(req.url) || req.query.nocortinablocks !== undefined) {
