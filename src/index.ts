@@ -21,18 +21,28 @@ export function cortina(options: {
 }> {
   const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisClient, redisKey } = options
 
-  const fullBlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
+  const fullBlocksConfig: BlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
     fullBlocksConfig.klaroConfig = devBlocks.klaroConfig
     fullBlocksConfig.matomoAnalytics = devBlocks.matomoAnalytics
   }
+
   if (!blockApiUrl) {
     throw new Error('Block api url must be specified.')
   }
-  if (!redisClient) {
-    return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
+  if (redisClient) {
+    return fetchWithRedis(redisClient, blockApiUrl, language, fullBlocksConfig, redisKey)
   }
+  return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
+}
 
+const fetchWithRedis = async (
+  redisClient: Redis,
+  blockApiUrl: string,
+  language: SupportedLang,
+  fullBlocksConfig: BlocksConfig,
+  redisKey?: string
+) => {
   const { defaultKey, redisExpire } = redisItemSettings
   const finalRedisKey = redisKey || defaultKey
 
