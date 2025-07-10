@@ -8,7 +8,7 @@ import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, defaultSupportedLanguages, redisItemSettings, devBlocks } from './config'
 export * from './types'
 
-// Gets HTML blocks from Cortina using promises.
+// Gets HTML blocks from Cortina or Redis.
 function cortina(options: {
   blockApiUrl: string
   language: SupportedLang
@@ -16,10 +16,12 @@ function cortina(options: {
   blocksConfig?: BlocksConfig
   redisConfig?: RedisConfig
   redisKey?: string
+  memoryCache: boolean
 }): Promise<{
   [blockName: string]: string
 }> {
   const { blockApiUrl, language, shouldSkipCookieScripts, blocksConfig, redisConfig, redisKey } = options
+  const { memoryCache } = options
 
   const fullBlocksConfig: BlocksConfig = { ...defaultBlocksConfig, ...blocksConfig }
   if (shouldSkipCookieScripts) {
@@ -33,7 +35,7 @@ function cortina(options: {
   if (redisConfig) {
     return fetchWithRedis(redisConfig, blockApiUrl, language, fullBlocksConfig, redisKey)
   }
-  return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
+  return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language, memoryCache)
 }
 
 const fetchWithRedis = async (
@@ -57,13 +59,13 @@ const fetchWithRedis = async (
         return storedBlocks
       }
 
-      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language).then(cortinaBlocks =>
+      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language, false).then(cortinaBlocks =>
         setRedisItem(redisClient, finalRedisKey, redisExpire, language, cortinaBlocks)
       )
     })
     .catch(err => {
       log.error('Redis failed:', err.message, err.code)
-      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language)
+      return fetchAllBlocks(fullBlocksConfig, blockApiUrl, language, false)
     })
 }
 
@@ -93,6 +95,14 @@ const validateConfig = (config: Config) => {
   }
 }
 
+const shouldUseMemoryCache = (config: Config): boolean => {
+  const { memoryCache: memoryCacheConfig = true, redisConfig } = config
+
+  if (!redisConfig) return !!memoryCacheConfig
+
+  return false
+}
+
 export function cortinaMiddleware(config: Config) {
   validateConfig(config)
   return async (req: Request, res: ExtendedResponse, next: NextFunction) => {
@@ -102,6 +112,7 @@ export function cortinaMiddleware(config: Config) {
       return
     }
     const { redisConfig, redisKey, skipCookieScriptsInDev = true, supportedLanguages } = config
+    const memoryCache = shouldUseMemoryCache(config)
 
     const language = getLanguage(res, supportedLanguages)
 
@@ -117,6 +128,7 @@ export function cortinaMiddleware(config: Config) {
       blocksConfig,
       redisConfig,
       redisKey,
+      memoryCache,
     })
       .then(blocks => {
         // @ts-ignore
