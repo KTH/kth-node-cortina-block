@@ -2,6 +2,18 @@
 
 All notable changes for major version updates will be documented here.
 
+## 7.1.0
+
+Adds a memory cache for blocks.
+
+### Added
+
+- In memory cache
+
+### Removed
+
+- **Breaking:** Exported function "cortina".
+
 ## 7.0.0
 
 Cleaning upp Kth Style < 9.

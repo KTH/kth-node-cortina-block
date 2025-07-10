@@ -34,6 +34,7 @@ Default blocks that will be fetched can be found in config.ts. If you want to fe
 ## Options
 
 - `blockApiUrl` is required. Should point to the Cortina block API endpoint.
+- `memoryCache` is optional. Defaults to "true" unless `redisConfig` is provided. Stores blocks in memory for 10 minutes.
 - `redisConfig` is optional. An object parsed from `kth-node-configuration`, containing `host` and `port`. If provided, blocks will be cached in redis.
 - `redisKey` is optional. Use unique keys of multiple apps share the same redis.
 - `supportedLanguages` is optional. If app only uses a subset of the supported languages. Default is `['sv', 'en']`.
