@@ -5,6 +5,7 @@ export type Config = {
   redisKey?: string
   skipCookieScriptsInDev?: boolean
   supportedLanguages?: SupportedLang[]
+  memoryCache?: boolean
 }
 
 export type RedisConfig = {
@@ -23,4 +24,6 @@ export type Redis = {
 
 export type SupportedLang = 'sv' | 'en'
 
-export type ExtendedResponse = Response & { locals?: { locale: { language: SupportedLang } } }
+export type ExtendedResponse = Response & {
+  locals?: { locale: { language: SupportedLang }; blocks?: { [key: string]: string } }
+}
