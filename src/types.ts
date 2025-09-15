@@ -1,3 +1,5 @@
+import type { Response } from 'express'
+
 export type Config = {
   blockApiUrl: string
   blocksConfig?: BlocksConfig
