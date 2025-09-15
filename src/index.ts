@@ -1,4 +1,4 @@
-import { NextFunction, Request } from 'express'
+import type { NextFunction, Request } from 'express'
 import log from '@kth/log'
 import redis from 'kth-node-redis'
 

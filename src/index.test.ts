@@ -1,7 +1,7 @@
 import { cortinaMiddleware } from './index'
 import { fetchAllBlocks } from './fetch-blocks'
 import { Config, ExtendedResponse, RedisConfig, SupportedLang } from './types'
-import { NextFunction, Request } from 'express'
+import type { NextFunction, Request } from 'express'
 import mockRedis from 'kth-node-redis'
 
 jest.mock('@kth/log')
