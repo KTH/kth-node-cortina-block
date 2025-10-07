@@ -1,7 +1,16 @@
-import { BlocksObject, Redis, SupportedLang } from './types'
+import { RedisClient } from 'kth-node-redis'
+import { BlocksObject, SupportedLang } from './types'
 
-export function getRedisItem<T>(redis: Redis, redisKey: string, lang: SupportedLang): Promise<T | undefined> {
-  return redis.hgetallAsync(redisKey + lang)
+export async function getRedisItem(
+  redis: RedisClient,
+  redisKey: string,
+  lang: SupportedLang
+): Promise<BlocksObject | undefined> {
+  const redisResult = await redis.hGetAll(redisKey + lang)
+
+  if (Object.keys(redisResult)?.length < 1) return undefined
+
+  return redisResult
 }
 
 /**
@@ -12,14 +21,14 @@ export function getRedisItem<T>(redis: Redis, redisKey: string, lang: SupportedL
  * @private
  */
 export function setRedisItem(
-  redis: Redis,
+  redis: RedisClient,
   redisKey: string,
   redisExpire: number,
   lang: SupportedLang,
   blocks: BlocksObject
 ) {
   return redis
-    .hmsetAsync(redisKey + lang, blocks)
-    .then(() => redis.expireAsync(redisKey + lang, redisExpire))
+    .hSet(redisKey + lang, blocks)
+    .then(() => redis.expire(redisKey + lang, redisExpire))
     .then(() => blocks)
 }

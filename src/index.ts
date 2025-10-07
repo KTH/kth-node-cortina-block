@@ -1,8 +1,8 @@
 import type { NextFunction, Request } from 'express'
 import log from '@kth/log'
-import redis from 'kth-node-redis'
+import { getClient } from 'kth-node-redis'
 
-import { Config, SupportedLang, BlocksObject, BlocksConfig, Redis, ExtendedResponse, RedisConfig } from './types'
+import { Config, SupportedLang, BlocksObject, BlocksConfig, ExtendedResponse, RedisConfig } from './types'
 import { getRedisItem, setRedisItem } from './redis-utils'
 import { fetchAllBlocks } from './fetch-blocks'
 import { defaultBlocksConfig, defaultSupportedLanguages, redisItemSettings, devBlocks } from './config'
@@ -48,12 +48,12 @@ const fetchWithRedis = async (
   const { defaultKey, redisExpire } = redisItemSettings
   const finalRedisKey = redisKey || defaultKey
 
-  const redisClient: Redis = await redis('cortina', redisConfig)
+  const redisClient = await getClient('cortina', redisConfig)
 
   // Try to get from Redis otherwise get from web service then cache result
   // in Redis using redisKey. If Redis connection fails, call API
   // directly and don't cache results.
-  return getRedisItem<BlocksObject>(redisClient, finalRedisKey, language)
+  return getRedisItem(redisClient, finalRedisKey, language)
     .then(storedBlocks => {
       if (storedBlocks) {
         return storedBlocks

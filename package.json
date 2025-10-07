@@ -35,7 +35,7 @@
   "license": "MIT",
   "dependencies": {
     "@kth/log": "^4.0.7",
-    "kth-node-redis": "^3.4.0"
+    "kth-node-redis": "^4.0.0"
   },
   "devDependencies": {
     "@kth/eslint-config-kth": "^3.6.0",

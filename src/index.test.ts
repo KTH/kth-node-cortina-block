@@ -2,11 +2,13 @@ import { cortinaMiddleware } from './index'
 import { fetchAllBlocks } from './fetch-blocks'
 import { Config, ExtendedResponse, RedisConfig, SupportedLang } from './types'
 import type { NextFunction, Request } from 'express'
-import mockRedis from 'kth-node-redis'
+import * as redis from 'kth-node-redis'
 
 jest.mock('@kth/log')
-jest.mock('kth-node-redis', () => jest.fn())
+jest.mock('kth-node-redis', () => ({ getClient: jest.fn() }))
 jest.mock('./fetch-blocks', () => ({ fetchAllBlocks: jest.fn() }))
+
+const mockGetClient = redis.getClient as jest.Mock
 
 const BLOCK_FROM_API_FETCH = '<div>Hello from Api fetcher!</div>'
 const BLOCK_FROM_REDIS = '<div>Hello from redis!</div>'
@@ -19,27 +21,25 @@ const redisResponse = {
 
 const mockFetchAllBlocks = fetchAllBlocks as jest.Mock
 
-const createRedisClient = (options: { shouldFail: boolean; shouldReturn?: boolean }) => {
-  const { shouldFail, shouldReturn = true } = options
+const createRedisClient = (options: { shouldFail: boolean; returnValue?: any }) => {
+  const { shouldFail, returnValue = redisResponse } = options
   const error = new Error('Connection refused')
 
   return {
-    hgetallAsync: jest.fn((key: string) => {
+    hGetAll: jest.fn((key: string) => {
       if (shouldFail) return Promise.reject(error)
 
-      if (shouldReturn === false) return Promise.resolve(undefined)
-
-      return Promise.resolve(redisResponse)
+      return Promise.resolve(returnValue)
     }),
 
-    hmsetAsync: jest.fn((key: string, value: string) => {
+    hSet: jest.fn((key: string, value: string) => {
       if (shouldFail) return Promise.reject(error)
 
-      return Promise.resolve(redisResponse)
+      return Promise.resolve(returnValue)
     }),
 
-    expireAsync: jest.fn(),
-  }
+    expire: jest.fn(),
+  } as unknown as redis.RedisClient
 }
 
 const sampleConfig: Config = {
@@ -61,7 +61,7 @@ describe(`cortinaMiddleware`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockFetchAllBlocks.mockResolvedValue({ footer: BLOCK_FROM_API_FETCH })
-    mockRedis.mockResolvedValue(createRedisClient({ shouldFail: false }))
+    mockGetClient.mockResolvedValue(createRedisClient({ shouldFail: false }))
   })
   afterAll(() => jest.resetAllMocks())
 
@@ -141,8 +141,8 @@ describe(`cortinaMiddleware`, () => {
 
   test('do not use memoryCache if redisConfig is provided', async () => {
     const config: Config = { ...sampleConfig, redisConfig: sampleRedisConfig }
-    const redisClient = createRedisClient({ shouldFail: false, shouldReturn: false })
-    mockRedis.mockResolvedValue(redisClient)
+    const redisClient = createRedisClient({ shouldFail: false, returnValue: {} })
+    mockGetClient.mockResolvedValue(redisClient)
 
     const myMiddleware = cortinaMiddleware(config)
     const { req, res, next } = getReqResNext()
@@ -164,7 +164,7 @@ describe(`cortinaMiddleware`, () => {
   })
 
   test('get blocks from redis cache if they exist', async () => {
-    mockRedis.mockResolvedValue(createRedisClient({ shouldFail: false }))
+    mockGetClient.mockResolvedValue(createRedisClient({ shouldFail: false }))
 
     const config = { ...sampleConfig, redisConfig: sampleRedisConfig }
 
@@ -178,8 +178,22 @@ describe(`cortinaMiddleware`, () => {
     expect(res.locals?.blocks?.search).toEqual(BLOCK_FROM_REDIS)
     expect(mockFetchAllBlocks).not.toHaveBeenCalled()
   })
+
+  test('fetch blocks from api if redis returns empty object', async () => {
+    mockGetClient.mockResolvedValue(createRedisClient({ shouldFail: false, returnValue: {} }))
+
+    const config = { ...sampleConfig, redisConfig: sampleRedisConfig }
+
+    const myMiddleware = cortinaMiddleware(config)
+    const { req, res, next } = getReqResNext()
+
+    await myMiddleware(req, res, next)
+
+    expect(res.locals?.blocks?.footer).toEqual(BLOCK_FROM_API_FETCH)
+    expect(mockFetchAllBlocks).toHaveBeenCalled()
+  })
   test('fetch blocks from api if redis fails', async () => {
-    mockRedis.mockResolvedValue(createRedisClient({ shouldFail: true }))
+    mockGetClient.mockResolvedValue(createRedisClient({ shouldFail: true }))
 
     const config = { ...sampleConfig, redisConfig: sampleRedisConfig }
 
@@ -192,8 +206,8 @@ describe(`cortinaMiddleware`, () => {
     expect(mockFetchAllBlocks).toHaveBeenCalled()
   })
   test('use custom redis key if provided', async () => {
-    const redisClient = createRedisClient({ shouldFail: false, shouldReturn: false })
-    mockRedis.mockResolvedValue(redisClient)
+    const redisClient = createRedisClient({ shouldFail: false, returnValue: {} })
+    mockGetClient.mockResolvedValue(redisClient)
 
     const redisKey = 'CustomRedisKey_'
 
@@ -204,8 +218,8 @@ describe(`cortinaMiddleware`, () => {
 
     await myMiddleware(req, res, next)
 
-    expect(redisClient.hgetallAsync).toHaveBeenCalledWith('CustomRedisKey_en')
-    expect(redisClient.hmsetAsync).toHaveBeenCalledWith('CustomRedisKey_en', expect.anything())
+    expect(redisClient.hGetAll).toHaveBeenCalledWith('CustomRedisKey_en')
+    expect(redisClient.hSet).toHaveBeenCalledWith('CustomRedisKey_en', expect.anything())
   })
   test('ignore request language and use a supported language if "supportedLanguages" is provided', async () => {
     const supportedLanguages: SupportedLang[] = ['sv']
