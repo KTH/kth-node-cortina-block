@@ -2,6 +2,14 @@
 
 All notable changes for major version updates will be documented here.
 
+## 7.2.0
+
+Adds a memory cache for blocks.
+
+### Changed
+
+- Now uses kth-node-redis@4 and redis@5
+
 ## 7.1.0
 
 Adds a memory cache for blocks.
