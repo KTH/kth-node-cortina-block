@@ -117,7 +117,7 @@ export function cortinaMiddleware(config: Config) {
     const language = getLanguage(res, supportedLanguages)
 
     let shouldSkipCookieScripts = false
-    if (req.hostname.includes('localhost') && skipCookieScriptsInDev) {
+    if (req.hostname?.includes('localhost') && skipCookieScriptsInDev) {
       shouldSkipCookieScripts = true
     }
     const { blockApiUrl, blocksConfig } = config
