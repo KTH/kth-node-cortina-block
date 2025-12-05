@@ -34,20 +34,20 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@kth/log": "^4.0.7",
+    "@kth/log": "^4.0.8",
     "kth-node-redis": "^4.0.0"
   },
   "devDependencies": {
     "@kth/eslint-config-kth": "^3.6.0",
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.16.0",
+    "@types/node": "^22.19.1",
     "eslint": "^8.57.1",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
-    "lint-staged": "^16.2.3",
-    "prettier": "^3.6.2",
-    "ts-jest": "^29.4.4",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   },
   "prettier": {
